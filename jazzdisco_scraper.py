@@ -1,6 +1,6 @@
 # build a webscraper for http://www.jazzdisco.org/
 # identify the record lable links diffently to treat differently?
-# there will be a move involved process for getting at the record lable info...
+# there will be a more involved process for getting at the record lable info...
 
 from bs4 import BeautifulSoup
 import requests
