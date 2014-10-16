@@ -51,39 +51,41 @@ def make_artist_dict():
 		if contains_digits(i):
 			artist_dict['tracks'] = clean_word(i)
 		else:
-			instrument.append(i)
+			instrument.append(clean_word(i))
 	# create dict name attrs
 	if len(names) == 3:
-		artist_dict['first_name'] = names[0]
+		artist_dict['first_name'] = clean_word(names[0])
 		artist_dict['middle_name'] = names[1]
 		artist_dict['last_name'] = names[2]
 	elif len(names) == 2:
-		artist_dict['first_name'] = names[0]
+		artist_dict['first_name'] = clean_word(names[0])
 		artist_dict['last_name'] = names[1]
 	elif len(names) == 1:
-		artist_dict['first_name'] = names[0]
+		artist_dict['first_name'] = clean_word(names[0])
 	else:
 		print "does not fit the name system"
 	# create dict instrument attrs
-	if len(instrument) == 0:
-		artist_dict['instrument'] = 'none'
+	if len(instrument) >= 2:
+		for i in instrument:
+			i = clean_word(i)
+		artist_dict['instrument'] = instrument
 	elif len(instrument) == 1:
-		artist_dict['instrument'] = clean_word(instrument[0])
-	elif len(instrument) >= 2:
-		artist_dict['instrument'] = clean_word(instrument)
+		artist_dict['instrument'] = clean_word(instrument[0])	
+	elif len(instrument) == 0:
+		artist_dict['instrument'] = 'none'
 	else:
 		print "does not fit instrument system"
 	return artist_dict
 
 def make_list_of_artist_dicts():
 	artist_dicts = []
-	print make_artist_dict()
-	print make_artist_dict()
-	print word_list
+	while len(word_list) > 0:
+		artist_dicts.append(make_artist_dict())
+	return artist_dicts
 
+list_of_artist_dicts = make_list_of_artist_dicts()
 
-print make_list_of_artist_dicts()
-	
+print list_of_artist_dicts[3]
 
 
 # {
