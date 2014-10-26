@@ -239,7 +239,7 @@ def make_list_of_artist_dicts():
 		# something to do with formatting rather than identifying every instrument
 		#	possibilty - commas, spaces - the only crazy formatting so far is the
 		#	'baritone,alto saxophone' thing, also '(soprano,tenor saxophone)'
-	# sometimes double-quote marks are in string - " "
+	# sometimes double-quote marks are in string - " "??? won't be an issue coming from site, right?
 	# address redundancy of spliting lists into names and instruments/tracks
 
 # ['Nat', 'Adderley', '(cornet', '-1,2,4/6)', 
