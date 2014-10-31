@@ -107,7 +107,8 @@ class AlbumPersonnel():
 	def has_mult_word_inst(self, array):
 		mult_name_inst = False
 		for word in array:
-			if not word.endswith(",") and not word.endswith(")"):
+			if not word.endswith(",") and not word.endswith(")") \
+			and not self.contains_digits(word):
 				mult_name_inst = True
 		return mult_name_inst
 
@@ -117,7 +118,7 @@ class AlbumPersonnel():
 			a = array.index(word)
 			b = a + 1
 			if not word.endswith(",") and not word.endswith(")") \
-				and not self.contains_digits(word):
+			and not self.contains_digits(word) and not self.contains_digits(array[b]):
 				revised_array.append(word + " " + array[b])
 				array.remove(array[b])
 			else:
@@ -165,19 +166,20 @@ class AlbumPersonnel():
 				final_arrays.append(a)
 		return final_arrays
 
-
+# might need to keep tracks separated before multi-word-inst function so they won't be combined
 ex = AlbumPersonnel(artists)
 for a in ex.correct_problem_arrays():
 	print a, "\n"
 
 
 class AlbumArtist(): # will this be a child of AlbumPersonnel?
-	def __init__(self, artist_array):
+	def __init__(self, artist_array): #array of artist arrays? - artistS_array
 		# takes a partitioned artist array
+			# list of two lists - artist names, instrument/track info
 		# should probably call AlbumPersonnel in the init
 		self.artist_array[0] = name
 		self.artist_array[1] = instrument
-		self.artist_array[2] = track # need to check if there IS track info
+		
 
 # Design:
 	# make a class which creates a Personnel object out of the initial string
@@ -188,9 +190,11 @@ class AlbumArtist(): # will this be a child of AlbumPersonnel?
 		# split multiple artist per inst into multiple artist arrays
 		# a good place to put functions regarding string-parsing by commas,
 		#	parens, hyphens...
+		# clean_word function should go here, process and break into tidy
+		#	chunks so the artist objects can just give titles to attributes
 
-	# sub-class for individual artists
+	# (sub-class?) for individual artists
 		# each artist object should have attributes for name/s, instrument/s, 
 		# 	and track/s
-		# this is probably where the clean_word function should come into effect
+		
 
