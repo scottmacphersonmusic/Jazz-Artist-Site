@@ -23,6 +23,7 @@ class AlbumPersonnel():
 			artist_arrays.append(temp_array)
 		return artist_arrays
 
+	_digits = re.compile('\d')
 	def contains_digits(self, d):
 		return bool(self._digits.search(d))
 	
@@ -166,19 +167,65 @@ class AlbumPersonnel():
 				final_arrays.append(a)
 		return final_arrays
 
-# might need to keep tracks separated before multi-word-inst function so they won't be combined
+
 ex = AlbumPersonnel(artists)
-for a in ex.correct_problem_arrays():
-	print a, "\n"
+artist_arrays = ex.correct_problem_arrays()
 
 
-class AlbumArtist(): # will this be a child of AlbumPersonnel?
-	def __init__(self, artist_array): #array of artist arrays? - artistS_array
+class AlbumArtist(): 	# run once for each artist object
+	# ex: ['Jerome', 'Richardson'], ['(tenor saxophone,', 'flute', '-1,4/6)']
+	def __init__(self, artist_array): 
 		# takes a partitioned artist array
 			# list of two lists - artist names, instrument/track info
-		# should probably call AlbumPersonnel in the init
-		self.artist_array[0] = name
-		self.artist_array[1] = instrument
+		self.artist_array = artist_array
+		self.names = artist_array[0]
+		self.inst_track = artist_array[1]
+		self.artist_dict = {}
+
+	def clean_word(self, w):
+		if w.startswith('(') and w.endswith(')'):
+			x = w.lstrip('(')
+			return x.rstrip(')')
+		elif w.startswith('-') and w.endswith(')'):
+			x = w.lstrip('-')
+			return x.rstrip(')')
+		elif w.startswith('('):
+			return w.lstrip('(')
+		elif w.endswith(')'):
+			return w.rstrip(')')
+		elif w.endswith(','): # for mult. artists on same instrument
+			return w.rstrip(',')
+		else:
+			return w
+
+
+	#	#	#	Deal With Track Info 	#	#	#
+
+		# may eventually need to deal with track-info shorthand, ex: "1, 4/7" - that backslash
+
+	_digits = re.compile('\d') # same function in AlbumPersonnel class... redundant?
+	def contains_digits(self, d):
+		return bool(self._digits.search(d))
+
+	def tracks_to_dict(self):
+		for i in self.inst_track:
+			if self.contains_digits(i):
+				self.artist_dict['tracks'] = self.clean_word(i)
+
+
+
+	#	#	#	Deal With Instrument Info 	#	#	#
+
+
+	#	#	#	Deal With Name Info 	#	#	#
+
+
+one_array = artist_arrays[3]
+test = AlbumArtist(one_array)
+test.tracks_to_dict()
+print test.artist_dict['tracks']
+
+
 		
 
 # Design:
@@ -196,5 +243,6 @@ class AlbumArtist(): # will this be a child of AlbumPersonnel?
 	# (sub-class?) for individual artists
 		# each artist object should have attributes for name/s, instrument/s, 
 		# 	and track/s
+		# eventually setup to poop out a json or whatever i end up needing
 		
 
