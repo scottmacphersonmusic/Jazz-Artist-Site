@@ -1,9 +1,10 @@
-# redesign 'artist-info-parser' with classes to make personell objects
 import re
 
-artists = "Nat Adderley (cornet -1,2,4/6) Donald Byrd (trumpet -1,2,4,5) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute -1,4/6) Horace Silver (piano) Paul Chambers (bass) Kenny Clarke (drums)"
+# personnel string templates:
+# artists = "Nat Adderley (cornet -1,2,4/6) Donald Byrd (trumpet -1,2,4,5) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute -1,4/6) Horace Silver (piano) Paul Chambers (bass) Kenny Clarke (drums)"
 # artists = 'Nat Adderley (cornet) Ernie Royal (trumpet) Bobby Byrne, Jimmy Cleveland (trombone) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute) Danny Bank (baritone saxophone) Junior Mance (piano) Keter Betts (bass) Charles "Specs" Wright (drums)'
 # artists = "Pharoah Sanders (tenor,soprano saxophone, bells, percussion) Michael White (violin, percussion) Lonnie Liston Smith (piano, electric piano, claves, percussion) Cecil McBee (bass, finger cymbals, percussion) Clifford Jarvis (drums, maracas, bells, percussion) James Jordan (ring cymbals -3)"
+artists = "Clifford Brown, Art Farmer (trumpet) Ake Persson (trombone) Arne Domnerus (alto saxophone, clarinet) Lars Gullin (baritone saxophone) Bengt Hallberg (piano) Gunnar Johnson (bass) Jack Noren (drums) Quincy Jones (arranger, director)"
 
 class AlbumPersonnel():
 
@@ -168,10 +169,6 @@ class AlbumPersonnel():
 		return final_arrays
 
 
-ex = AlbumPersonnel(artists)
-artist_arrays = ex.correct_problem_arrays()
-
-
 class AlbumArtist(): 	# run once for each artist object
 	# ex: ['Jerome', 'Richardson'], ['(tenor saxophone,', 'flute', '-1,4/6)']
 	def __init__(self, artist_array): 
@@ -193,7 +190,7 @@ class AlbumArtist(): 	# run once for each artist object
 			return w.lstrip('(')
 		elif w.endswith(')'):
 			return w.rstrip(')')
-		elif w.endswith(','): # for mult. artists on same instrument
+		elif w.endswith(','):
 			return w.rstrip(',')
 		else:
 			return w
@@ -218,37 +215,40 @@ class AlbumArtist(): 	# run once for each artist object
 	def instruments_to_dict(self):
 		n = 1
 		for i in self.inst_track:
-			key = "instrument_" + str(n)
-			self.artist_dict[key] = self.clean_word(i)
+			key = "inst_" + str(n)
+			self.artist_dict[key] = self.clean_word(self.clean_word(i)) # added comma protection
 			n += 1
 
 	#	#	#	Deal With Name Info 	#	#	#
 
+	def names_to_dict(self):
+		n = 1
+		for i in self.names:
+			key = "name_" + str(n)
+			self.artist_dict[key] = self.clean_word(i)
+			n += 1
 
-one_array = artist_arrays[3]
-test = AlbumArtist(one_array)
-test.tracks_to_dict()
-test.instruments_to_dict()
-print test.artist_dict
+	#	#	#	#	#	#	#	#	#	#	#	#
+
+	def create_artist_dict(self):
+		self.tracks_to_dict()
+		self.instruments_to_dict()
+		self.names_to_dict()
 
 
-		
+# Temporary Instantiation Test:
+personnel = AlbumPersonnel(artists)
+artist_arrays = personnel.correct_problem_arrays()
+artist_dicts = []
+for a in artist_arrays:
+	artist_dicts.append(AlbumArtist(a))
+for a in artist_dicts:
+	a.create_artist_dict()
+for a in artist_dicts:
+	print a.artist_dict
+ 
 
-# Design:
-	# make a class which creates a Personnel object out of the initial string
-		# this is where each artist should be broken down into self-contained 
-		#	arrays by inidividual
-		# deals with fixing artist arrays so they will nicely work with Artist 
-		#	objects and have methods to do so
-		# split multiple artist per inst into multiple artist arrays
-		# a good place to put functions regarding string-parsing by commas,
-		#	parens, hyphens...
-		# clean_word function should go here, process and break into tidy
-		#	chunks so the artist objects can just give titles to attributes
-
-	# (sub-class?) for individual artists
-		# each artist object should have attributes for name/s, instrument/s, 
-		# 	and track/s
-		# eventually setup to poop out a json or whatever i end up needing
-		
-
+# To Do:
+	# - set this module up to automatically take in a personnel string and return
+	#	 organized artist data in json format
+	# - automate most the process by putting calls in the _init_?
