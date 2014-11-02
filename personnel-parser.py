@@ -211,11 +211,16 @@ class AlbumArtist(): 	# run once for each artist object
 		for i in self.inst_track:
 			if self.contains_digits(i):
 				self.artist_dict['tracks'] = self.clean_word(i)
-
-
+				self.inst_track.remove(i)
 
 	#	#	#	Deal With Instrument Info 	#	#	#
 
+	def instruments_to_dict(self):
+		n = 1
+		for i in self.inst_track:
+			key = "instrument_" + str(n)
+			self.artist_dict[key] = self.clean_word(i)
+			n += 1
 
 	#	#	#	Deal With Name Info 	#	#	#
 
@@ -223,7 +228,8 @@ class AlbumArtist(): 	# run once for each artist object
 one_array = artist_arrays[3]
 test = AlbumArtist(one_array)
 test.tracks_to_dict()
-print test.artist_dict['tracks']
+test.instruments_to_dict()
+print test.artist_dict
 
 
 		
