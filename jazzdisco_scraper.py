@@ -4,7 +4,7 @@
 
 from bs4 import BeautifulSoup
 import requests
-# import personnel_parser
+import personnel-parser
 
 BASE_URL = "http://jazzdisco.org/"
 
@@ -23,21 +23,56 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 # test_soup = make_soup(test_page)
 
-class Album():
+class ArtistCatalog():
 	
 	def __init__(self, artist_url):
 		self.artist_url = artist_url
 		self.soup = make_soup(self.artist_url)
 		self.content = self.soup.find(id="catalog-data")
+		self.make_unicode_list() # call function when object is instantiated
 		self.album_dict = {} # final dict to put all info in
 
-	def test(self):
+	def make_unicode_list(self):
 		c = self.content.prettify()
 		s = c.split("<h3>")
-		return s[1]
+		unicode_list = []
+		for i in s[1:]:
+			if not i.startswith("<h2>"):
+				unicode_list.append("<h3>" + i)
+			else:
+				unicode_list.append(i)
+		return unicode_list
 
-x = Album(test_page)
-print x.test()
+
+class Album():
+
+	def __init__(self, album_info):
+		self.album_info = album_info
+
+	def extract_personnel_strings(self): #
+		# find first personnel string
+		start_1 = self.album_info.index("</h3>") + 5 # tag is 5 characters long
+		end_1 = self.album_info.index('<div class="date">')
+		p_string_1 = self.album_info[start_1:end_1]
+		# find second personnel string
+		copy = self.album_info
+		target_string = copy.split("</table>")[1]
+		end_2 = target_string.index("<div")
+		p_string_2 = target_string[:end_2]
+		return p_string_1, p_string_2
+
+	def create_personnel_dicts(self):
+		pass # use stuff from personnel-parser to put personnel info in dicts
+
+
+
+x = ArtistCatalog(test_page)
+a_i = x.make_unicode_list()[0] # first item (album markup) in unicode list
+y = Album(a_i)
+print y.extract_personnel_strings()
+
+
+
 
 		
 # content: <div id="catalog-data">
