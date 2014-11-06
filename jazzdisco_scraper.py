@@ -4,7 +4,7 @@
 
 from bs4 import BeautifulSoup
 import requests
-import personnel-parser
+import personnelparser
 
 BASE_URL = "http://jazzdisco.org/"
 
@@ -21,7 +21,6 @@ def get_category_links(url):
 
 category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
-# test_soup = make_soup(test_page)
 
 class ArtistCatalog():
 	
@@ -48,28 +47,44 @@ class Album():
 
 	def __init__(self, album_info):
 		self.album_info = album_info
+		self.artist_dicts = []
+		self.create_personnel_dicts()
 
 	def extract_personnel_strings(self): #
+		p_strings = []
 		# find first personnel string
 		start_1 = self.album_info.index("</h3>") + 5 # tag is 5 characters long
 		end_1 = self.album_info.index('<div class="date">')
 		p_string_1 = self.album_info[start_1:end_1]
+		p_strings.append(p_string_1)
 		# find second personnel string
 		copy = self.album_info
 		target_string = copy.split("</table>")[1]
 		end_2 = target_string.index("<div")
 		p_string_2 = target_string[:end_2]
-		return p_string_1, p_string_2
+		p_strings.append(p_string_2)
+		return p_strings
 
 	def create_personnel_dicts(self):
-		pass # use stuff from personnel-parser to put personnel info in dicts
+		# use stuff from personnel-parser to put personnel info in dicts
+		p_strings = self.extract_personnel_strings()
+		p_string_1 = (p_strings[0]).encode('ascii', 'ignore') # convert to ascii
+		# p_string_2 = p_strings[1]
+		p_1 = personnelparser.AlbumPersonnel(p_string_1)
+		artist_arrays_1 = p_1.correct_problem_arrays()
+		# artist_dicts = []
+		for a in artist_arrays_1:
+			self.artist_dicts.append(personnelparser.AlbumArtist(a))
+		
 
 
 
 x = ArtistCatalog(test_page)
 a_i = x.make_unicode_list()[0] # first item (album markup) in unicode list
 y = Album(a_i)
-print y.extract_personnel_strings()
+for d in y.artist_dicts:
+	print d.artist_dict # make sure to refer to the attribute from personnelparser.py
+
 
 
 
