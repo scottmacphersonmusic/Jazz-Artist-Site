@@ -66,6 +66,7 @@ class Album():
 		self.p_strings.append(p_string_2)
 
 	def create_personnel_dicts(self):
+		# first personnel string
 		p_string_1 = (self.p_strings[0]).encode('ascii', 'ignore') # convert to ascii
 		p_1 = personnelparser.AlbumPersonnel(p_string_1)
 		p_1_Album_objects = []
@@ -75,17 +76,28 @@ class Album():
 		for a in p_1_Album_objects:
 			p_1_Album_dicts.append(a.artist_dict)
 		self.album_dict['personnel_1'] = p_1_Album_dicts
-
-		# p_s_2_dicts = []
-		# p_string_2 = (self.p_strings[1]).encode('ascii', 'ignore')
-		# p_2 = personnelparser.AlbumPersonnel(p_string_2)
+		# second personnel string
+		p_string_2 = (self.p_strings[1]).encode('ascii', 'ignore')
+		p_2 = personnelparser.AlbumPersonnel(p_string_2)
+		p_2_Album_objects = []
+		for a in p_2.final_arrays:
+			p_2_Album_objects.append(personnelparser.AlbumArtist(a))
+		p_2_album_dicts = []
+		for a in p_2_Album_objects:
+			p_2_album_dicts.append(a.artist_dict)
+		self.album_dict['personnel_2'] = p_2_album_dicts
 
 x = ArtistCatalog(test_page)
 a_i = x.unicode_list[0] # first item (album markup) in unicode list
 y = Album(a_i)
 z = y.album_dict
 a = z['personnel_1']
+print "Personnel String 1: "
 for d in a:
+	print d
+b = z['personnel_2']
+print "Personnel String 2: "
+for d in b:
 	print d
 
 
