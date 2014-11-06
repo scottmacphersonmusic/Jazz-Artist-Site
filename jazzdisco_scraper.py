@@ -28,65 +28,65 @@ class ArtistCatalog():
 		self.artist_url = artist_url
 		self.soup = make_soup(self.artist_url)
 		self.content = self.soup.find(id="catalog-data")
-		self.make_unicode_list() # call function when object is instantiated
-		self.album_dict = {} # final dict to put all info in
+		self.unicode_list = []
+		self.make_unicode_list()
 
 	def make_unicode_list(self):
 		c = self.content.prettify()
 		s = c.split("<h3>")
-		unicode_list = []
 		for i in s[1:]:
 			if not i.startswith("<h2>"):
-				unicode_list.append("<h3>" + i)
+				self.unicode_list.append("<h3>" + i)
 			else:
-				unicode_list.append(i)
-		return unicode_list
+				self.unicode_list.append(i)
 
 
 class Album():
 
 	def __init__(self, album_info):
 		self.album_info = album_info
-		self.artist_dicts = []
+		self.p_strings = []
+		self.extract_personnel_strings()
+		self.album_dict = {}
 		self.create_personnel_dicts()
+		
+		
 
-	def extract_personnel_strings(self): #
-		p_strings = []
+	def extract_personnel_strings(self):
 		# find first personnel string
 		start_1 = self.album_info.index("</h3>") + 5 # tag is 5 characters long
 		end_1 = self.album_info.index('<div class="date">')
 		p_string_1 = self.album_info[start_1:end_1]
-		p_strings.append(p_string_1)
-		# find second personnel string
+		self.p_strings.append(p_string_1)
+		# find second personnel string - will probly be more p_strings for other albums
 		copy = self.album_info
 		target_string = copy.split("</table>")[1]
 		end_2 = target_string.index("<div")
 		p_string_2 = target_string[:end_2]
-		p_strings.append(p_string_2)
-		return p_strings
+		self.p_strings.append(p_string_2)
 
 	def create_personnel_dicts(self):
-		# use stuff from personnel-parser to put personnel info in dicts
-		p_strings = self.extract_personnel_strings()
-		p_string_1 = (p_strings[0]).encode('ascii', 'ignore') # convert to ascii
-		# p_string_2 = p_strings[1]
+		p_string_1 = (self.p_strings[0]).encode('ascii', 'ignore') # convert to ascii
 		p_1 = personnelparser.AlbumPersonnel(p_string_1)
-		artist_arrays_1 = p_1.correct_problem_arrays()
-		# artist_dicts = []
-		for a in artist_arrays_1:
-			self.artist_dicts.append(personnelparser.AlbumArtist(a))
-		
+		p_1_Album_objects = []
+		for a in p_1.final_arrays:
+			p_1_Album_objects.append(personnelparser.AlbumArtist(a))
+		p_1_Album_dicts = [] # get just the artist_dict attrs
+		for a in p_1_Album_objects:
+			p_1_Album_dicts.append(a.artist_dict)
+		self.album_dict['personnel_1'] = p_1_Album_dicts
 
-
+		# p_s_2_dicts = []
+		# p_string_2 = (self.p_strings[1]).encode('ascii', 'ignore')
+		# p_2 = personnelparser.AlbumPersonnel(p_string_2)
 
 x = ArtistCatalog(test_page)
-a_i = x.make_unicode_list()[0] # first item (album markup) in unicode list
+a_i = x.unicode_list[0] # first item (album markup) in unicode list
 y = Album(a_i)
-for d in y.artist_dicts:
-	print d.artist_dict # make sure to refer to the attribute from personnelparser.py
-
-
-
+z = y.album_dict
+a = z['personnel_1']
+for d in a:
+	print d
 
 
 		
