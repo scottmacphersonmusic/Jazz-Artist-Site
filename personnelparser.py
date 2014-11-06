@@ -11,7 +11,9 @@ class AlbumPersonnel():
 	def __init__(self, personnel_string):
 		self.personnel_string = personnel_string	
 		self._digits = re.compile('\d')
-		self.artist_arrays = [] #append() formatted artist arrays here to send to AlbumArtist constructor
+		self.artist_arrays = [] 
+		self.final_arrays = []	# this is the attribute I will want out of the object
+		self.correct_problem_arrays()
 	
 	def initial_artist_arrays(self):
 	# should result in a list of artist lists
@@ -154,7 +156,6 @@ class AlbumPersonnel():
 			else:
 				corrected_arrays.append(a)
 		# multi-word instruments
-		final_arrays = []
 		for a in corrected_arrays:
 			name = a[0]
 			inst = a[1]
@@ -163,10 +164,9 @@ class AlbumPersonnel():
 				inst = self.multiple_word_instrument(inst)
 				temp_array.append(name)
 				temp_array.append(inst)
-				final_arrays.append(temp_array)
+				self.final_arrays.append(temp_array)
 			else:
-				final_arrays.append(a)
-		return final_arrays
+				self.final_arrays.append(a)
 
 
 class AlbumArtist(): 	# run once for each artist object
@@ -177,7 +177,7 @@ class AlbumArtist(): 	# run once for each artist object
 		self.artist_array = artist_array
 		self.names = artist_array[0]
 		self.inst_track = artist_array[1]
-		self.artist_dict = {}
+		self.artist_dict = {} 	# this is the attr I will want at the end
 		self.create_artist_dict()
 
 	def clean_word(self, w):
@@ -240,9 +240,8 @@ class AlbumArtist(): 	# run once for each artist object
 
 # Temporary Instantiation Test:
 # personnel = AlbumPersonnel(artists)
-# artist_arrays = personnel.correct_problem_arrays()
 # artist_dicts = []
-# for a in artist_arrays:
+# for a in personnel.final_arrays:
 # 	artist_dicts.append(AlbumArtist(a))
 # for a in artist_dicts:
 # 	print a.artist_dict
@@ -251,4 +250,3 @@ class AlbumArtist(): 	# run once for each artist object
 # To Do:
 	# - set this module up to automatically take in a personnel string and return
 	#	 organized artist data in json format
-	# - automate most the process by putting calls in the _init_?
