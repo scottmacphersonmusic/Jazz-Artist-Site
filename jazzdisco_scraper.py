@@ -49,8 +49,8 @@ class Album():
 		self.extract_personnel_strings()
 		self.album_dict = {}
 		self.create_personnel_dicts()
-		
-		
+		self.find_p_string_id()
+
 
 	def extract_personnel_strings(self):
 		# find first personnel string
@@ -87,18 +87,28 @@ class Album():
 			p_2_album_dicts.append(a.artist_dict)
 		self.album_dict['personnel_2'] = p_2_album_dicts
 
+	def find_p_string_id(self):
+		# helps to pair p_strings with the rest of album info
+		# id should be compared to <a name="p_string_id"> in <h3> tag
+		split_info = self.album_info.split('name="')
+		end = split_info[1].index('">')
+		self.album_dict['p_string_id'] = split_info[1][:end]
+
+
 x = ArtistCatalog(test_page)
 a_i = x.unicode_list[0] # first item (album markup) in unicode list
 y = Album(a_i)
 z = y.album_dict
-a = z['personnel_1']
-print "Personnel String 1: "
-for d in a:
-	print d
-b = z['personnel_2']
-print "Personnel String 2: "
-for d in b:
-	print d
+print z['p_string_id']
+# a = z['personnel_1']
+# print "Personnel String 1: "
+# for d in a:
+# 	print d
+# b = z['personnel_2']
+# print "Personnel String 2: "
+# for d in b:
+# 	print d
+
 
 
 		
