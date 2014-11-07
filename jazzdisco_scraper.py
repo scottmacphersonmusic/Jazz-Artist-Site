@@ -40,16 +40,30 @@ class ArtistCatalog():
 			else:
 				self.unicode_list.append(i)
 
+	def find_target_album(self):
+		print self.content.find("a", {"name":"savoy-mg-12017"}) # boo-fuckin-ya!
+
+		# ("meta", {"name":"City"})
+
+		# self.content.find("h3").find_next_sibling() <- this works
+
+		 # text='savoy-mg-12017'
+		 # text='name="savoy-mg-12017"'
+		
+
 
 class Album():
 
-	def __init__(self, album_info):
+	def __init__(self, album_info, catalog_data):
 		self.album_info = album_info
+		self.catalog_data = catalog_data
 		self.p_strings = []
 		self.extract_personnel_strings()
 		self.album_dict = {}
 		self.create_personnel_dicts()
+		self.p_string_id = 0
 		self.find_p_string_id()
+		# self.find_target_album()
 
 
 	def extract_personnel_strings(self):
@@ -92,15 +106,24 @@ class Album():
 		# id should be compared to <a name="p_string_id"> in <h3> tag
 		split_info = self.album_info.split('name="')
 		end = split_info[1].index('">')
-		self.album_dict['p_string_id'] = split_info[1][:end]
+		# self.album_dict['p_string_id'] = split_info[1][:end]
+		self.p_string_id = split_info[1][:end]
+
+	def find_target_album(self):
+		# which <h3> heading has the desired p_string_id?
+		# print self.catalog_data.find(text=self.p_string_id).find_next_sibling()
+		pass
 
 
 x = ArtistCatalog(test_page)
 a_i = x.unicode_list[0] # first item (album markup) in unicode list
-y = Album(a_i)
+print x.find_target_album()
+c_d = x.content
+y = Album(a_i, c_d)
 z = y.album_dict
-print z['p_string_id']
+# print z['p_string_id']
 # a = z['personnel_1']
+# print "Personnel String ID: ", z['p_string_id']
 # print "Personnel String 1: "
 # for d in a:
 # 	print d
@@ -109,7 +132,7 @@ print z['p_string_id']
 # for d in b:
 # 	print d
 
-
+# !!! Use p_string_id to id the album id to start from using next_sibling iterator from there
 
 		
 # content: <div id="catalog-data">
