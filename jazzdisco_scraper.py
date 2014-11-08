@@ -40,18 +40,7 @@ class ArtistCatalog():
 			else:
 				self.unicode_list.append(i)
 
-	def find_target_album(self):
-		print self.content.find("a", {"name":"savoy-mg-12017"}) # boo-fuckin-ya!
-
-		# ("meta", {"name":"City"})
-
-		# self.content.find("h3").find_next_sibling() <- this works
-
-		 # text='savoy-mg-12017'
-		 # text='name="savoy-mg-12017"'
-		
-
-
+	
 class Album():
 
 	def __init__(self, album_info, catalog_data):
@@ -62,8 +51,10 @@ class Album():
 		self.album_dict = {}
 		self.create_personnel_dicts()
 		self.p_string_id = 0
+		self.sibling_limit = 0
+		self.set_sibling_limit()
 		self.find_p_string_id()
-		# self.find_target_album()
+		self.navigate_target_album()
 
 
 	def extract_personnel_strings(self):
@@ -109,30 +100,73 @@ class Album():
 		# self.album_dict['p_string_id'] = split_info[1][:end]
 		self.p_string_id = split_info[1][:end]
 
-	def find_target_album(self):
-		# which <h3> heading has the desired p_string_id?
-		# print self.catalog_data.find(text=self.p_string_id).find_next_sibling()
+	def set_sibling_limit(self):
+		div = self.album_info.count('<div class="date">')
+		table = self.album_info.count('<table')
+		if div != table:
+			print "divs don't match tables"
+		else:
+			self.sibling_limit = div
+
+	def clean_td(self, td):
+		table_data = []
+		for s in td:
+			if s == '\n':
+				continue
+			else:
+				t = s.encode('ascii', 'ignore')
+				table_data.append(t.rstrip("\n"))
+		return table_data
+
+	def navigate_target_album(self):
+		first_link = self.catalog_data.find("a", {"name":self.p_string_id})
+		parent = first_link.find_parent("h3")
+		self.album_dict['album_title/id'] = parent.string
+		# assign date/location to album_dict
+		divs = parent.find_next_siblings("div", limit=self.sibling_limit)
+		index = 1
+		for d in divs:
+			key = "session_" + str(index) + "_date/location"
+			self.album_dict[key] = d.string
+			index += 1
+		# assign track info to ablum_dict
+		tables = parent.find_next_siblings("table", limit=self.sibling_limit)
+		index = 1
+		for t in tables:
+			strings = t.stripped_strings
+			key = "session_" + str(index) + "_tracks"
+			tracks = {}
+			keys = []
+			values = []
+			count = 0
+			for s in strings:
+				if count % 2 == 0:
+					keys.append(s.encode('ascii', 'ignore'))
+					count += 1
+				else:
+					values.append(s.encode('ascii', 'ignore'))
+					count += 1
+			count = 0
+			for k in keys:
+				tracks[keys[count]] = values[count]
+				count += 1
+			self.album_dict[key] = tracks
+			index += 1
+		
+	def print_Album_attrs(self):
 		pass
 
+	# ("meta", {"name":"City"})
+
+	# self.content.find("h3").find_next_sibling() <- this works	
 
 x = ArtistCatalog(test_page)
 a_i = x.unicode_list[0] # first item (album markup) in unicode list
-print x.find_target_album()
 c_d = x.content
 y = Album(a_i, c_d)
-z = y.album_dict
-# print z['p_string_id']
-# a = z['personnel_1']
-# print "Personnel String ID: ", z['p_string_id']
-# print "Personnel String 1: "
-# for d in a:
-# 	print d
-# b = z['personnel_2']
-# print "Personnel String 2: "
-# for d in b:
-# 	print d
+print y.album_dict.keys()
 
-# !!! Use p_string_id to id the album id to start from using next_sibling iterator from there
+
 
 		
 # content: <div id="catalog-data">
