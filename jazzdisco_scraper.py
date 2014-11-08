@@ -153,8 +153,56 @@ class Album():
 			self.album_dict[key] = tracks
 			index += 1
 		
-	def print_Album_attrs(self):
-		pass
+	##### printing functions #####
+	
+	def print_personnel(self, personnel_dict):
+		p = personnel_dict
+		t = "\t"
+		for d in p:
+			print t*2, d
+			# print d['name_1'], " ",
+			# if 'name_2' in d:
+			# 	print d['name_2'], " ",
+			# if 'name_3' in d:
+			# 	print d['name_3'], " ",
+			# print ", ", d['inst_1'],
+			# if 'inst_2' in d:
+			# 	print ", ", d['inst_2'],
+			# if 'inst_3' in d:
+			# 	print ", ", d['inst_3'],
+			# if 'inst_4' in d:
+			# 	print", ", d['inst_4'],
+			# if 'inst_5' in d:
+			# 	print ", ", d['inst_5'],
+			# if 'inst_6' in d:
+			# 	print ", ", d['inst_6'],
+			# if 'tracks' in d:
+			# 	print ", ", d['tracks']
+	# ['name_2', 'inst_2', 'tracks', 'name_1', 'inst_1'] 
+
+	def print_tracks(self, track_list):
+		t = "\t"
+		for d in track_list:
+			print t*2, d, ": ", track_list[d]
+	
+	def print_album_attrs(self):
+		t = "\t"
+		print "\n"
+		print "Album Title:	", self.album_dict['album_title/id'], "\n"
+		print "Session 1: ", self.album_dict['session_1_date/location']
+		print t, "Personnel:"
+		print self.print_personnel(self.album_dict['personnel_1'])
+		print t, "Tracks: "
+		print self.print_tracks(self.album_dict['session_1_tracks']), "\n"
+		print "Session 2: ", self.album_dict['session_2_date/location']
+		print t, "Personnel: " 
+		print self.print_personnel(self.album_dict['personnel_2'])
+		print t, "Tracks: " 
+		print self.print_tracks(self.album_dict['session_2_tracks']), "\n"
+
+# ['personnel_2', 'personnel_1', 'session_1_date/location', 
+#  'album_title/id', 'session_1_tracks', 'session_2_tracks', 
+#  'session_2_date/location']
 
 	# ("meta", {"name":"City"})
 
@@ -164,8 +212,7 @@ x = ArtistCatalog(test_page)
 a_i = x.unicode_list[0] # first item (album markup) in unicode list
 c_d = x.content
 y = Album(a_i, c_d)
-print y.album_dict.keys()
-
+print y.print_album_attrs()
 
 
 		
