@@ -245,6 +245,8 @@ class AlbumArtist(): 	# run once for each artist object
 # 	artist_dicts.append(AlbumArtist(a))
 # for a in artist_dicts:
 # 	print a.artist_dict
+
+# adding this line just to make sure my git branch is set up correctly
  
 
 # To Do:
