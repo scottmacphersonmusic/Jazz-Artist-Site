@@ -349,12 +349,12 @@ class AlbumArtist():
 
 # Temporary Instantiation Test:
 
-personnel = AlbumPersonnel(artists)
-artist_dicts = []
-for a in personnel.final_artist_arrays:
-	artist_dicts.append(AlbumArtist(a))
-for a in artist_dicts:
-	print a.artist_dict
+# personnel = AlbumPersonnel(artists)
+# artist_dicts = []
+# for a in personnel.final_artist_arrays:
+# 	artist_dicts.append(AlbumArtist(a))
+# for a in artist_dicts:
+# 	print a.artist_dict
 
 
 # To Do:
