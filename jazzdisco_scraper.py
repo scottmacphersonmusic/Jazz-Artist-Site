@@ -129,8 +129,8 @@ class Album():
 		instantiate an AlbumPersonnel object from the personnelparser module.
 		
 		Iterate over each artist array in the AlbumPersonnel attribute 
-		final_arrays and instantiate an AlbumArtist object (also from the
-		personnelparser module). 
+		final_artist_arrays and instantiate an AlbumArtist object (also from
+		the personnelparser module). 
 	
 		Produce a list of personnel dictionaries from
 		the artist_dict attribute of each AlbumArtist object and assign that
@@ -140,7 +140,7 @@ class Album():
 		p_string_1 = (self.p_strings[0]).encode('ascii', 'ignore') # convert to ascii
 		p_1 = personnelparser.AlbumPersonnel(p_string_1)
 		p_1_Album_objects = []
-		for a in p_1.final_arrays:
+		for a in p_1.final_artist_arrays:
 			p_1_Album_objects.append(personnelparser.AlbumArtist(a))
 		p_1_Album_dicts = [] # get just the artist_dict attrs
 		for a in p_1_Album_objects:
@@ -150,7 +150,7 @@ class Album():
 		p_string_2 = (self.p_strings[1]).encode('ascii', 'ignore')
 		p_2 = personnelparser.AlbumPersonnel(p_string_2)
 		p_2_Album_objects = []
-		for a in p_2.final_arrays:
+		for a in p_2.final_artist_arrays:
 			p_2_Album_objects.append(personnelparser.AlbumArtist(a))
 		p_2_album_dicts = []
 		for a in p_2_Album_objects:
