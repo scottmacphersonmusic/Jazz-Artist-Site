@@ -55,7 +55,6 @@ class AlbumPersonnel():
 			artist_arrays.append(temp_array)
 		return artist_arrays
 
-	_digits = re.compile('\d')
 	def contains_digits(self, d):
 		"""Return True if digits are present in a word (targets track info)."""
 		return bool(self._digits.search(d))
@@ -281,6 +280,7 @@ class AlbumArtist():
 		self.artist_array = artist_array
 		self.names = artist_array[0]
 		self.inst_track = artist_array[1]
+		self._digits = re.compile('\d')
 		self.artist_dict = {}
 		self.create_artist_dict()
 
@@ -304,7 +304,6 @@ class AlbumArtist():
 		else:
 			return w
 
-	_digits = re.compile('\d') # same function in AlbumPersonnel class - redundant
 	def contains_digits(self, d):
 		"""Return True if digits are present in a word (targets track info)."""
 		return bool(self._digits.search(d))
@@ -355,12 +354,12 @@ class AlbumArtist():
 
 # Temporary Instantiation Test:
 
-# personnel = AlbumPersonnel(artists)
-# artist_dicts = []
-# for a in personnel.final_arrays:
-# 	artist_dicts.append(AlbumArtist(a))
-# for a in artist_dicts:
-# 	print a.artist_dict
+personnel = AlbumPersonnel(artists)
+artist_dicts = []
+for a in personnel.final_arrays:
+	artist_dicts.append(AlbumArtist(a))
+for a in artist_dicts:
+	print a.artist_dict
 
 
 # To Do:
