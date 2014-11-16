@@ -42,7 +42,6 @@ class AlbumPersonnel():
 		"""
 		self.personnel_string = personnel_string
 		self.final_artist_arrays = []
-		self.correct_rogue_arrays()
 	
 	def initial_artist_arrays(self):
 		"""
@@ -212,7 +211,7 @@ class AlbumPersonnel():
 
 # #	# # # # # # # # # # # # # # # # # # # # #
 
-	def correct_rogue_arrays(self):
+	def correct_multiple_artists_and_ranges(self):
 		"""
 		Apply methods from the 'Rogue-Array Correction Suite'.
 
@@ -221,10 +220,6 @@ class AlbumPersonnel():
 		revise_multiple_range_array() should be called to correct their 
 		corresponding 'rogue' array issues and append the results to
 		corrected_artist_arrays.
-
-		Test the contents of corrected_artist_arrays to see if/when 
-		join_multiple_word_instrument() needs to be called and append the
-		results to self.final_arrays in __init__.
 		"""
 		partitioned_artist_arrays = self.partitioned_artist_arrays()
 		corrected_artist_arrays = []
@@ -248,8 +243,15 @@ class AlbumPersonnel():
 				corrected_artist_arrays.append(temporary_array)
 			else:
 				corrected_artist_arrays.append(artist_array)
-		# multiple-word instruments
-		for artist_array in corrected_artist_arrays:
+		return corrected_artist_arrays
+
+	def correct_multiple_word_instruments(self):
+		"""
+		Test the contents of correct_multiple_artists_and_ranges to see if/when 
+		join_multiple_word_instrument() needs to be called and append the
+		results to self.final_arrays in __init__.
+		"""
+		for artist_array in self.correct_multiple_artists_and_ranges():
 			name = artist_array[0]
 			inst = artist_array[1]
 			if self.contains_multiple_word_instrument(inst):
@@ -280,7 +282,6 @@ class AlbumArtist():
 		self.names = artist_array[0]
 		self.instrument_track = artist_array[1]
 		self.artist_dict = {}
-		self.create_artist_dict()
 
 	def clean_word(self, word):
 		"""
@@ -346,19 +347,37 @@ class AlbumArtist():
 		self.names_to_dict()
 
 
+def album_artists(personnel_string):
+	"""
+	
+	"""
+	personnel = AlbumPersonnel(personnel_string)
+	personnel.correct_multiple_word_instruments()
+	final_artist_arrays = personnel.final_artist_arrays
+	artist_dicts = []
+	for artist_array in final_artist_arrays:
+		album_artist = AlbumArtist(artist_array)
+		album_artist.create_artist_dict()
+		artist_dicts.append(album_artist.artist_dict)
+	return artist_dicts
+
+for d in album_artists(artists):
+	print d
+
+
 # Temporary Instantiation Test:
-personnel = AlbumPersonnel(artists)
+# personnel = AlbumPersonnel(artists)
 # personnel.correct_rogue_arrays()
 # for array in personnel.final_artist_arrays:
 # 	print array
 
+# print album_personnel(artists)
 
-
-artist_dicts = []
-for a in personnel.final_artist_arrays:
-	artist_dicts.append(AlbumArtist(a))
-for a in artist_dicts:
-	print a.artist_dict
+# artist_dicts = []
+# for a in personnel.final_artist_arrays:
+# 	artist_dicts.append(AlbumArtist(a))
+# for a in artist_dicts:
+# 	print a.artist_dict
 
 
 # To Do:
