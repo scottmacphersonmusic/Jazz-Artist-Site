@@ -23,8 +23,8 @@ def contains_digits(word):
 
 # Personnel String Templates (for testing):
 # artists = "Nat Adderley (cornet -1,2,4/6) Donald Byrd (trumpet -1,2,4,5) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute -1,4/6) Horace Silver (piano) Paul Chambers (bass) Kenny Clarke (drums)"
-artists = 'Nat Adderley (cornet) Ernie Royal (trumpet) Bobby Byrne, Jimmy Cleveland (trombone) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute) Danny Bank (baritone saxophone) Junior Mance (piano) Keter Betts (bass) Charles "Specs" Wright (drums)'
-# artists = "Pharoah Sanders (tenor,soprano saxophone, bells, percussion) Michael White (violin, percussion) Lonnie Liston Smith (piano, electric piano, claves, percussion) Cecil McBee (bass, finger cymbals, percussion) Clifford Jarvis (drums, maracas, bells, percussion) James Jordan (ring cymbals -3)"
+# artists = 'Nat Adderley (cornet) Ernie Royal (trumpet) Bobby Byrne, Jimmy Cleveland (trombone) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute) Danny Bank (baritone saxophone) Junior Mance (piano) Keter Betts (bass) Charles "Specs" Wright (drums)'
+artists = "Pharoah Sanders (tenor,soprano saxophone, bells, percussion) Michael White (violin, percussion) Lonnie Liston Smith (piano, electric piano, claves, percussion) Cecil McBee (bass, finger cymbals, percussion) Clifford Jarvis (drums, maracas, bells, percussion) James Jordan (ring cymbals -3)"
 # artists = "Clifford Brown, Art Farmer (trumpet) Ake Persson (trombone) Arne Domnerus (alto saxophone, clarinet) Lars Gullin (baritone saxophone) Bengt Hallberg (piano) Gunnar Johnson (bass) Jack Noren (drums) Quincy Jones (arranger, director)"
 
 class AlbumPersonnel():
@@ -181,9 +181,11 @@ class AlbumPersonnel():
 		True if a multiple-word instrument appears to be present.
 		"""
 		contains_multiple_word_instrument = False
+		if len(instrument_array) == 2 and not (instrument_array[0]).endswith(",") \
+		and not contains_digits(instrument_array[1]):
+			contains_multiple_word_instrument = True
 		for word in instrument_array:
-			if not word.endswith(",") and not word.endswith(")") \
-			and not contains_digits(word):
+			if word.endswith(",") and not contains_digits(word):
 				contains_multiple_word_instrument = True
 		return contains_multiple_word_instrument
 
@@ -199,7 +201,7 @@ class AlbumPersonnel():
 		revised_array = []
 		for word in instrument_array:
 			next_word = instrument_array.index(word) + 1
-			if not word.endswith(",") and not word.endswith(")") \
+			if "," not in word and not word.endswith(")") \
 			and not contains_digits(word) \
 			and not contains_digits(instrument_array[next_word]):
 				revised_array.append(word + " " + instrument_array[next_word])
@@ -207,7 +209,6 @@ class AlbumPersonnel():
 			else:
 				revised_array.append(word)
 		return revised_array
-
 
 # #	# # # # # # # # # # # # # # # # # # # # #
 
@@ -347,6 +348,10 @@ class AlbumArtist():
 
 # Temporary Instantiation Test:
 personnel = AlbumPersonnel(artists)
+# personnel.correct_rogue_arrays()
+# for array in personnel.final_artist_arrays:
+# 	print array
+
 
 
 artist_dicts = []
