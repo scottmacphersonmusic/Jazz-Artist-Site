@@ -49,8 +49,9 @@ class AlbumPersonnel():
 		containing an artist's name/s and instrument/track info.
 		"""
 		split_strings = self.personnel_string.split(")")
-		initial_artist_arrays = [string.lstrip(" ")  + ")" for string 	   	# replace ")" delimiter for later use
-							    in split_strings[:len(split_strings) - 1]]	# avoid last empty item
+		initial_artist_arrays = [string.lstrip(" ")  + ")"					# replace ")" delimiter for later use
+								 for string 	   		
+							     in split_strings[:len(split_strings) - 1]]	# avoid last empty item
 		return initial_artist_arrays
 	
 	def partition_artist_array(self, artist_array):
@@ -73,8 +74,9 @@ class AlbumPersonnel():
 		calling initial_artist_arrays() and return a list of partitioned
 		artist arrays.
 		"""
-		partitioned_artist_arrays = [self.partition_artist_array(array) for array
-									in self.initial_artist_arrays()]
+		partitioned_artist_arrays = [self.partition_artist_array(array)
+									 for array
+									 in self.initial_artist_arrays()]
 		return partitioned_artist_arrays
 	
 # # # The Rogue-Array Correction Suite # # #
@@ -92,6 +94,8 @@ class AlbumPersonnel():
 				contains_multiple_artists = True
 		return contains_multiple_artists
 
+### BOOKMARK: replacing for-loops with map, filter, or list comprehensions where applicable ###
+	
 	def split_multiple_artists(self, name_array):
 		"""
 		Recieve the 'name' sub-array of a given artist array and return a new
@@ -101,10 +105,10 @@ class AlbumPersonnel():
 				['Bobby', 'Byrne,', 'Jimmy', 'Cleveland'] becomes:
 				[['Bobby', 'Byrne,'], ['Jimmy', 'Cleveland']]
 		"""
-		endpoints = []
-		for word in name_array:
-			if word.endswith(",") or word == name_array[-1]:
-				endpoints.append(word)
+		endpoints = [word for word
+					 in name_array
+					 if word.endswith(',')
+					 or word == name_array[-1]]
 		split_multiple_artists = []
 		temporary_array = []
 		for word in name_array:
@@ -359,9 +363,16 @@ def album_artists(personnel_string):
 # for d in album_artists(artists):
 # 	print d
 
+name_array = ['Bobby', 'Byrne,',
+			  'Jimmy', 'Cleveland,',
+			  'Vincent', 'Reginald', 'LaBelle,',
+			  'Jason', 'Cressy'
+			  ]
+
 personnel = AlbumPersonnel(artists)
-for array in personnel.partitioned_artist_arrays():
-	print array
+print personnel.contains_multiple_artists(name_array)
+print personnel.split_multiple_artists(name_array)
+
 
 # To Do:
 	# - set this module up to automatically take in a personnel string and return
