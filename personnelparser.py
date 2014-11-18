@@ -23,8 +23,8 @@ def contains_digits(word):
 
 # Personnel String Templates (for testing):
 # artists = "Nat Adderley (cornet -1,2,4/6) Donald Byrd (trumpet -1,2,4,5) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute -1,4/6) Horace Silver (piano) Paul Chambers (bass) Kenny Clarke (drums)"
-# artists = 'Nat Adderley (cornet) Ernie Royal (trumpet) Bobby Byrne, Jimmy Cleveland (trombone) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute) Danny Bank (baritone saxophone) Junior Mance (piano) Keter Betts (bass) Charles "Specs" Wright (drums)'
-artists = "Pharoah Sanders (tenor,soprano saxophone, bells, percussion) Michael White (violin, percussion) Lonnie Liston Smith (piano, electric piano, claves, percussion) Cecil McBee (bass, finger cymbals, percussion) Clifford Jarvis (drums, maracas, bells, percussion) James Jordan (ring cymbals -3)"
+artists = 'Nat Adderley (cornet) Ernie Royal (trumpet) Bobby Byrne, Jimmy Cleveland (trombone) Cannonball Adderley (alto saxophone) Jerome Richardson (tenor saxophone, flute) Danny Bank (baritone saxophone) Junior Mance (piano) Keter Betts (bass) Charles "Specs" Wright (drums)'
+# artists = "Pharoah Sanders (tenor,soprano saxophone, bells, percussion) Michael White (violin, percussion) Lonnie Liston Smith (piano, electric piano, claves, percussion) Cecil McBee (bass, finger cymbals, percussion) Clifford Jarvis (drums, maracas, bells, percussion) James Jordan (ring cymbals -3)"
 # artists = "Clifford Brown, Art Farmer (trumpet) Ake Persson (trombone) Arne Domnerus (alto saxophone, clarinet) Lars Gullin (baritone saxophone) Bengt Hallberg (piano) Gunnar Johnson (bass) Jack Noren (drums) Quincy Jones (arranger, director)"
 
 class AlbumPersonnel():
@@ -49,8 +49,9 @@ class AlbumPersonnel():
 		containing an artist's name/s and instrument/track info.
 		"""
 		split_strings = self.personnel_string.split(")")
-		initial_artist_arrays = [string.lstrip(" ")  + ")" for string		# replace ")" delimiter for later use
-							     in split_strings[:len(split_strings) - 1]]	# avoid last empty item
+		split_artists = [string.lstrip(" ")  + ")" for string		# replace ")" delimiter for later use
+						 in split_strings[:len(split_strings) - 1]]	# avoid last empty item
+		initial_artist_arrays = [artist.split() for artist in split_artists]
 		return initial_artist_arrays
 	
 	def partition_artist_array(self, artist_array):
@@ -173,7 +174,8 @@ class AlbumPersonnel():
 		True if a multiple-word instrument appears to be present.
 		"""
 		contains_multiple_word_instrument = False
-		if len(instrument_array) == 2 and not (instrument_array[0]).endswith(",") \
+		if len(instrument_array) == 2				\
+		and not (instrument_array[0]).endswith(",") \
 		and not contains_digits(instrument_array[1]):
 			contains_multiple_word_instrument = True
 		for word in instrument_array:
@@ -194,7 +196,7 @@ class AlbumPersonnel():
 		for word in instrument_array:
 			next_word = instrument_array.index(word) + 1
 			if "," not in word and not word.endswith(")") \
-			and not contains_digits(word) \
+			and not contains_digits(word) 				  \
 			and not contains_digits(instrument_array[next_word]):
 				revised_array.append(word + " " + instrument_array[next_word])
 				instrument_array.remove(instrument_array[next_word])
@@ -202,17 +204,13 @@ class AlbumPersonnel():
 				revised_array.append(word)
 		return revised_array
 
-# #	# # # # # # # # # # # # # # # # # # # # #
+# #	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-	def correct_multiple_artists_and_ranges(self):
+### BOOKMARK: splitting function into smaller function but need to fix partition_artist_array() first
+
+	def correct_multiple_artists(self):
 		"""
-		Apply methods from the 'Rogue-Array Correction Suite'.
-
-		Call partitioned_artist_arrays() to generate a list of partitioned
-		arrays, test whether split_multiple_artists() or
-		revise_multiple_range_array() should be called to correct their 
-		corresponding 'rogue' array issues and append the results to
-		corrected_artist_arrays.
+		Need to re-write docstrings to reflect splitting this function
 		"""
 		partitioned_artist_arrays = self.partitioned_artist_arrays()
 		corrected_artist_arrays = []
@@ -228,15 +226,24 @@ class AlbumPersonnel():
 					temporary_array.append(inst)
 					corrected_artist_arrays.append(temporary_array)
 			# multiple range instruments
-			elif self.array_containing_multiple_range_word(inst):
-				temporary_array = []
-				inst = self.revise_multiple_range_array(inst)
-				temporary_array.append(name)
-				temporary_array.append(inst)
-				corrected_artist_arrays.append(temporary_array)
+			# elif self.array_containing_multiple_range_word(inst):
+			# 	temporary_array = []
+			# 	inst = self.revise_multiple_range_array(inst)
+			# 	temporary_array.append(name)
+			# 	temporary_array.append(inst)
+			# 	corrected_artist_arrays.append(temporary_array)
 			else:
 				corrected_artist_arrays.append(artist_array)
 		return corrected_artist_arrays
+
+	def correct_multiple_ranges(self):
+		pass
+		# self.array_containing_multiple_range_word(inst):
+		# 		temporary_array = []
+		# 		inst = self.revise_multiple_range_array(inst)
+		# 		temporary_array.append(name)
+		# 		temporary_array.append(inst)
+		# 		corrected_artist_arrays.append(temporary_array)
 
 	def correct_multiple_word_instruments(self):
 		"""
@@ -359,14 +366,23 @@ def album_artists(personnel_string):
 # for d in album_artists(artists):
 # 	print d
 
-instrument_array = ['(tenor,soprano,baritone',
-					'saxophone,',
-					'bells,',
-					'percussion)']
 
 personnel = AlbumPersonnel(artists)
-print personnel.array_containing_multiple_range_word(instrument_array)
-print personnel.revise_multiple_range_array(instrument_array)
+
+# print personnel.initial_artist_arrays()
+
+# a = personnel.initial_artist_arrays()
+# # print personnel.partition_artist_array(a[0])
+# for array in a:
+# 	print personnel.partition_artist_array(array)
+
+
+
+# for array in personnel.partitioned_artist_arrays():
+# 	print array
+
+for array in personnel.correct_multiple_artists():
+	print array
 
 
 # To Do:
