@@ -49,8 +49,8 @@ class AlbumPersonnel():
 		containing an artist's name/s and instrument/track info.
 		"""
 		split_strings = self.personnel_string.split(")")
-		initial_artist_arrays = [string.lstrip(" ")  + ")" for string 		# replace ")" delimiter for later use
-							    in split_strings[:len(split_strings) - 1]]
+		initial_artist_arrays = [string.lstrip(" ")  + ")" for string 	   	# replace ")" delimiter for later use
+							    in split_strings[:len(split_strings) - 1]]	# avoid last empty item
 		return initial_artist_arrays
 	
 	def partition_artist_array(self, artist_array):
@@ -73,13 +73,9 @@ class AlbumPersonnel():
 		calling initial_artist_arrays() and return a list of partitioned
 		artist arrays.
 		"""
-		initial_artist_arrays = self.initial_artist_arrays()
-		partitioned_artist_arrays = []
-		for array in initial_artist_arrays:
-			partitioned_artist_arrays.append(
-									  self.partition_artist_array(array))
+		partitioned_artist_arrays = [self.partition_artist_array(array) for array
+									in self.initial_artist_arrays()]
 		return partitioned_artist_arrays
-
 	
 # # # The Rogue-Array Correction Suite # # #
 	
@@ -364,7 +360,7 @@ def album_artists(personnel_string):
 # 	print d
 
 personnel = AlbumPersonnel(artists)
-for array in personnel.initial_artist_arrays():
+for array in personnel.partitioned_artist_arrays():
 	print array
 
 # To Do:
