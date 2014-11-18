@@ -48,12 +48,9 @@ class AlbumPersonnel():
 		Split personnel_string into words and return a list of arrays each
 		containing an artist's name/s and instrument/track info.
 		"""
-		initial_artist_arrays = []
 		split_strings = self.personnel_string.split(")")
-		for string in split_strings[:-1]: 	# leaves out extra empty item
-			string += ")"					# replaces delimiter for later use
-			split_array = string.split()
-			initial_artist_arrays.append(split_array)
+		initial_artist_arrays = [string.lstrip(" ")  + ")" for string 		# replace ")" delimiter for later use
+							    in split_strings[:len(split_strings) - 1]]
 		return initial_artist_arrays
 	
 	def partition_artist_array(self, artist_array):
@@ -349,7 +346,9 @@ class AlbumArtist():
 
 def album_artists(personnel_string):
 	"""
-	
+	Create an instance of an AlbumPersonnel object, generate its final_artist_arrays attribute.
+	Create an instance of an AlbumArtist object for each artist array in the AlbumPersonnel object,
+	generate the artist_dict attribute. Return a list of artist dicts for each artist array.
 	"""
 	personnel = AlbumPersonnel(personnel_string)
 	personnel.correct_multiple_word_instruments()
@@ -361,24 +360,12 @@ def album_artists(personnel_string):
 		artist_dicts.append(album_artist.artist_dict)
 	return artist_dicts
 
-for d in album_artists(artists):
-	print d
+# for d in album_artists(artists):
+# 	print d
 
-
-# Temporary Instantiation Test:
-# personnel = AlbumPersonnel(artists)
-# personnel.correct_rogue_arrays()
-# for array in personnel.final_artist_arrays:
-# 	print array
-
-# print album_personnel(artists)
-
-# artist_dicts = []
-# for a in personnel.final_artist_arrays:
-# 	artist_dicts.append(AlbumArtist(a))
-# for a in artist_dicts:
-# 	print a.artist_dict
-
+personnel = AlbumPersonnel(artists)
+for array in personnel.initial_artist_arrays():
+	print array
 
 # To Do:
 	# - set this module up to automatically take in a personnel string and return
