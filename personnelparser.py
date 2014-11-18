@@ -49,8 +49,7 @@ class AlbumPersonnel():
 		containing an artist's name/s and instrument/track info.
 		"""
 		split_strings = self.personnel_string.split(")")
-		initial_artist_arrays = [string.lstrip(" ")  + ")"					# replace ")" delimiter for later use
-								 for string 	   		
+		initial_artist_arrays = [string.lstrip(" ")  + ")" for string		# replace ")" delimiter for later use
 							     in split_strings[:len(split_strings) - 1]]	# avoid last empty item
 		return initial_artist_arrays
 	
@@ -93,8 +92,6 @@ class AlbumPersonnel():
 			if name.endswith(","):
 				contains_multiple_artists = True
 		return contains_multiple_artists
-
-### BOOKMARK: replacing for-loops with map, filter, or list comprehensions where applicable ###
 	
 	def split_multiple_artists(self, name_array):
 		"""
@@ -105,10 +102,10 @@ class AlbumPersonnel():
 				['Bobby', 'Byrne,', 'Jimmy', 'Cleveland'] becomes:
 				[['Bobby', 'Byrne,'], ['Jimmy', 'Cleveland']]
 		"""
-		endpoints = [word for word
-					 in name_array
+		endpoints = [word for word in name_array
 					 if word.endswith(',')
 					 or word == name_array[-1]]
+		
 		split_multiple_artists = []
 		temporary_array = []
 		for word in name_array:
@@ -159,12 +156,11 @@ class AlbumPersonnel():
 		revised_array = []
 		for word in instrument_array:
 			if self.contains_multiple_range_word(word):
-				base_instrument = instrument_array[instrument_array.index(word)+1]
+				base_instrument = (instrument_array[
+								   instrument_array.index(word)+1])
 				instrument_array.remove(base_instrument)
-				ranges = word.split(",")
-				for r in ranges:
-					new_inst = r + " " + base_instrument
-					revised_array.append(new_inst)
+				map(lambda r: revised_array.append(r + " " + base_instrument),
+					word.split(","))
 			else:
 				revised_array.append(word)
 		return revised_array
@@ -363,15 +359,14 @@ def album_artists(personnel_string):
 # for d in album_artists(artists):
 # 	print d
 
-name_array = ['Bobby', 'Byrne,',
-			  'Jimmy', 'Cleveland,',
-			  'Vincent', 'Reginald', 'LaBelle,',
-			  'Jason', 'Cressy'
-			  ]
+instrument_array = ['(tenor,soprano,baritone',
+					'saxophone,',
+					'bells,',
+					'percussion)']
 
 personnel = AlbumPersonnel(artists)
-print personnel.contains_multiple_artists(name_array)
-print personnel.split_multiple_artists(name_array)
+print personnel.array_containing_multiple_range_word(instrument_array)
+print personnel.revise_multiple_range_array(instrument_array)
 
 
 # To Do:
