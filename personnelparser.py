@@ -206,11 +206,10 @@ class AlbumPersonnel():
 
 # #	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-### BOOKMARK
-
 	def correct_multiple_artists(self):
 		"""
-		Need to re-write docstrings to reflect splitting this function
+		Call split_multiple_artists() on any artist arrays deemed necessary
+		by contains_multiple_artists and return an array of artist arrays.
 		"""
 		correct_multiple_artists = []
 		for artist_array in self.partitioned_artist_arrays():
@@ -226,6 +225,9 @@ class AlbumPersonnel():
 
 	def correct_multiple_ranges(self):
 		"""
+		Call revise_multiple_range_array() on any artist arrays deemed necessary
+		by array_containing_multiple_range_word() and return an array of artist
+		arrays.
 		""" 
 		correct_multiple_ranges = []
 		for artist_array in self.correct_multiple_artists():
@@ -241,9 +243,9 @@ class AlbumPersonnel():
 
 	def correct_multiple_word_instruments(self):
 		"""
-		Test the contents of correct_multiple_artists_and_ranges to see if/when 
-		join_multiple_word_instrument() needs to be called and append the
-		results to self.final_arrays in __init__.
+		Call join_multiple_word_instrument() on any artist arrays deemed necessary
+		by contains_multiple_word_instrument() and append the results to
+		self.final_arrays in __init__.
 		"""
 		for artist_array in self.correct_multiple_ranges():
 			if self.contains_multiple_word_instrument(artist_array[1]):
