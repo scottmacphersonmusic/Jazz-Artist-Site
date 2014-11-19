@@ -206,44 +206,38 @@ class AlbumPersonnel():
 
 # #	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-### BOOKMARK: splitting function into smaller function but need to fix partition_artist_array() first
+### BOOKMARK
 
 	def correct_multiple_artists(self):
 		"""
 		Need to re-write docstrings to reflect splitting this function
 		"""
-		partitioned_artist_arrays = self.partitioned_artist_arrays()
-		corrected_artist_arrays = []
-		for artist_array in partitioned_artist_arrays:
-			name = artist_array[0]
-			inst = artist_array[1]
-			# multiple artists
-			if self.contains_multiple_artists(name):
-				split_multiple_artists = self.split_multiple_artists(name)
-				for artist in split_multiple_artists:
+		correct_multiple_artists = []
+		for artist_array in self.partitioned_artist_arrays():
+			if self.contains_multiple_artists(artist_array[0]):
+				for artist in self.split_multiple_artists(artist_array[0]):
 					temporary_array = []
 					temporary_array.append(artist)
-					temporary_array.append(inst)
-					corrected_artist_arrays.append(temporary_array)
-			# multiple range instruments
-			# elif self.array_containing_multiple_range_word(inst):
-			# 	temporary_array = []
-			# 	inst = self.revise_multiple_range_array(inst)
-			# 	temporary_array.append(name)
-			# 	temporary_array.append(inst)
-			# 	corrected_artist_arrays.append(temporary_array)
+					temporary_array.append(artist_array[1])
+					correct_multiple_artists.append(temporary_array)
 			else:
-				corrected_artist_arrays.append(artist_array)
-		return corrected_artist_arrays
+				correct_multiple_artists.append(artist_array)
+		return correct_multiple_artists
 
 	def correct_multiple_ranges(self):
-		pass
-		# self.array_containing_multiple_range_word(inst):
-		# 		temporary_array = []
-		# 		inst = self.revise_multiple_range_array(inst)
-		# 		temporary_array.append(name)
-		# 		temporary_array.append(inst)
-		# 		corrected_artist_arrays.append(temporary_array)
+		"""
+		""" 
+		correct_multiple_ranges = []
+		for artist_array in self.correct_multiple_artists():
+			if self.array_containing_multiple_range_word(artist_array[1]):
+				temporary_array = []
+				instruments = self.revise_multiple_range_array(artist_array[1])
+				temporary_array.append(artist_array[0])
+				temporary_array.append(instruments)
+				correct_multiple_ranges.append(temporary_array)
+			else:
+				correct_multiple_ranges.append(artist_array)
+		return correct_multiple_ranges
 
 	def correct_multiple_word_instruments(self):
 		"""
@@ -251,14 +245,12 @@ class AlbumPersonnel():
 		join_multiple_word_instrument() needs to be called and append the
 		results to self.final_arrays in __init__.
 		"""
-		for artist_array in self.correct_multiple_artists_and_ranges():
-			name = artist_array[0]
-			inst = artist_array[1]
-			if self.contains_multiple_word_instrument(inst):
+		for artist_array in self.correct_multiple_ranges():
+			if self.contains_multiple_word_instrument(artist_array[1]):
 				temporary_array = []
-				inst = self.join_multiple_word_instrument(inst)
-				temporary_array.append(name)
-				temporary_array.append(inst)
+				instruments = self.join_multiple_word_instrument(artist_array[1])
+				temporary_array.append(artist_array[0])
+				temporary_array.append(instruments)
 				self.final_artist_arrays.append(temporary_array)
 			else:
 				self.final_artist_arrays.append(artist_array)
@@ -368,20 +360,8 @@ def album_artists(personnel_string):
 
 
 personnel = AlbumPersonnel(artists)
-
-# print personnel.initial_artist_arrays()
-
-# a = personnel.initial_artist_arrays()
-# # print personnel.partition_artist_array(a[0])
-# for array in a:
-# 	print personnel.partition_artist_array(array)
-
-
-
-# for array in personnel.partitioned_artist_arrays():
-# 	print array
-
-for array in personnel.correct_multiple_artists():
+personnel.correct_multiple_word_instruments()
+for array in personnel.final_artist_arrays:
 	print array
 
 
