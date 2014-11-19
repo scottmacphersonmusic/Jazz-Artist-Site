@@ -349,9 +349,8 @@ def album_artists(personnel_string):
 	"""
 	personnel = AlbumPersonnel(personnel_string)
 	personnel.correct_multiple_word_instruments()
-	final_artist_arrays = personnel.final_artist_arrays
-	artist_dicts = []
-	for artist_array in final_artist_arrays:
+	artist_dicts = [] 
+	for artist_array in personnel.final_artist_arrays:
 		album_artist = AlbumArtist(artist_array)
 		album_artist.create_artist_dict()
 		artist_dicts.append(album_artist.artist_dict)
@@ -361,10 +360,10 @@ def album_artists(personnel_string):
 # 	print d
 
 
-personnel = AlbumPersonnel(artists)
-personnel.correct_multiple_word_instruments()
-for array in personnel.final_artist_arrays:
-	print array
+# personnel = AlbumPersonnel(artists)
+# personnel.correct_multiple_word_instruments()
+# for array in personnel.final_artist_arrays:
+# 	print array
 
 
 # To Do:

@@ -128,44 +128,17 @@ class Album(): #catalog_soup
 
 	def create_personnel_dicts(self):
 		"""
-		Use each item in the list stored in __init__ attribute
-		personnel_strings to instantiate an AlbumPersonnel object from the
-		personnelparser module.
-		
-		Iterate over each artist array in the AlbumPersonnel attribute 
-		final_artist_arrays and instantiate an AlbumArtist object (also from
-		the personnelparser module). 
-	
-		Produce a list of personnel dictionaries from
-		the artist_dict attribute of each AlbumArtist object and assign that
-		list to a key in the album_dict attribute of this Album object. 
+		Use the album_artists() function from the personnelparser module to
+		create a list of artist dictionaries for each personnel string.
+		Assign each list to its own key in the self.album_dict attribute. 
 		"""
-		# first personnel string
-		personnel_string_1 = (self.personnel_strings[0]).encode(
-							  'ascii', 'ignore') # convert to ascii
-		personnel_object_1 = personnelparser.AlbumPersonnel(
-							 personnel_string_1)
-		album_object_1_arrays = []
-		for artist_array in personnel_object_1.final_artist_arrays:
-			album_object_1_arrays.append(personnelparser.AlbumArtist(
-										 artist_array))
-		album_object_1_dicts = [] # get just the artist_dict attrs
-		for artist_array in album_object_1_arrays:
-			album_object_1_dicts.append(artist_array.artist_dict)
-		self.album_dict['personnel_1'] = album_object_1_dicts
-		# second personnel string
-		personnel_string_2 = (self.personnel_strings[1]).encode(
-							  'ascii', 'ignore')
-		personnel_object_2 = personnelparser.AlbumPersonnel(
-							 personnel_string_2)
-		album_object_2_arrays = []
-		for artist_array in personnel_object_2.final_artist_arrays:
-			album_object_2_arrays.append(personnelparser.AlbumArtist(
-										 artist_array))
-		album_object_2_dicts = []
-		for artist_array in album_object_2_arrays:
-			album_object_2_dicts.append(artist_array.artist_dict)
-		self.album_dict['personnel_2'] = album_object_2_dicts
+		string_num = 1
+		for string in self.personnel_strings:
+			album_artist = personnelparser.album_artists(
+						   string.encode('ascii', 'ignore'))
+			key = "personnel_" + str(string_num)
+			self.album_dict[key] = album_artist 
+			string_num += 1
 
 	def find_personnel_string_id(self):
 		"""
@@ -283,8 +256,8 @@ cannonball_catalog = ArtistCatalog(test_page)
 string_markup = cannonball_catalog.unicode_list[0] # first item in unicode list
 catalog_soup = cannonball_catalog.content
 cannonball_album = Album(string_markup, catalog_soup)
+cannonball_album.create_personnel_dicts()
 cannonball_album.print_album_attributes()
-	
 
 # Available Album Dictionary Attributes:
 # ['personnel_2', 'personnel_1', 'session_1_date/location', 
