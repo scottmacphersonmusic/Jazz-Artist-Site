@@ -48,30 +48,15 @@ class ArtistCatalog():
 	def __init__(self, artist_url):
 		"""
 		Recieve an artist catalog url as input and produce a BS object of
-		catalog data as well as a list of unicode strings, each representing
+		catalog data as well as a list of strings, each representing
 		one album's markup.
 		"""
-		self.artist_url = artist_url
-		self.soup = make_soup(self.artist_url)
-		self.content = self.soup.find(id="catalog-data")
-		self.unicode_list = []
-		self.make_unicode_list()
-
-	def make_unicode_list(self):
-		"""
-		Produce a list of unicode strings that each contain the markup
-		for an album so as to gain access to personnel strings.
-		"""
-		pretty_content = self.content.prettify()
-		split_pretty_content = pretty_content.split("<h3>")
-		for item in split_pretty_content[1:]:
-			if not item.startswith("<h2>"):
-				self.unicode_list.append("<h3>" + item)
-			else:
-				self.unicode_list.append(item)
-
+		self.soup = make_soup(artist_url)
+		self.catalog_soup = self.soup.find(id="catalog-data")
+		self.string_markup = str(self.catalog_soup).split("<h3>")
+		 
 	
-class Album(): #catalog_soup
+class Album():
 
 	def __init__(self, string_markup, catalog_soup):
 		"""
@@ -100,6 +85,8 @@ class Album(): #catalog_soup
 		self.sibling_limit = 0
 		self.album_dict = {}
 
+
+### BOOKMARK: was in the middle of fixing this when i realized i needed to adjust the unicode list function
 	def extract_personnel_strings(self):
 		"""
 		Use the string_markup attribute from __init__ to isolate and extract
@@ -109,16 +96,22 @@ class Album(): #catalog_soup
 		personnel_strings.
 		"""
 		# find first personnel string
-		start_1 = string_markup.index("</h3>") + 5 # tag is 5 characters long
-		end_1 = string_markup.index('<div class="date">')
-		personnel_string_1 = string_markup[start_1:end_1]
-		self.personnel_strings.append(personnel_string_1)
-		# find second personnel string
-		markup_copy = string_markup
-		start_2 = markup_copy.split("</table>")[1]
-		end_2 = start_2.index("<div")
-		personnel_string_2 = start_2[:end_2]
-		self.personnel_strings.append(personnel_string_2)
+		# start_1 = string_markup.index("</h3>") + 5 # tag is 5 characters long
+		# end_1 = string_markup.index('<div class="date">')
+		# personnel_string_1 = string_markup[start_1:end_1]
+		# self.personnel_strings.append(personnel_string_1)
+		# # find second personnel string
+		# markup_copy = string_markup
+		# start_2 = markup_copy.split("</table>")[1]
+		# end_2 = start_2.index("<div")
+		# personnel_string_2 = start_2[:end_2]
+		# self.personnel_strings.append(personnel_string_2)
+		target_string = string_markup.split("</h3>")[1].encode('ascii', 'ignore').strip("\n")
+		split_strings = target_string.split("</table>")
+		for string in split_strings:
+			print string
+		
+		
 
 	def create_personnel_dicts(self):
 		"""
@@ -168,7 +161,8 @@ class Album(): #catalog_soup
 
 	def assign_album_data_to_album_dict(self):
 		"""
-		this needs to be broken up into multiple functions
+		Locate album title, session date and location data and assign to
+		album_dict.
 		"""
 		start_tag = self.catalog_soup.find(
 					 "a", {"name":self.personnel_string_id})
@@ -184,9 +178,8 @@ class Album(): #catalog_soup
 			session_count += 1
 		
 	def assign_track_info(self):
-		"""
-		write docstring
-		"""
+		"""Locate track data and assign to album_dict."""
+		# there must be a better way to accomplish what this function does!
 		start_tag = self.catalog_soup.find(
 					 "a", {"name":self.personnel_string_id})
 		parent_tag = start_tag.find_parent("h3")
@@ -254,11 +247,18 @@ class Album(): #catalog_soup
 category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
-string_markup = cannonball_catalog.unicode_list[0] # first item in unicode list
-catalog_soup = cannonball_catalog.content
-cannonball_album = Album(string_markup, catalog_soup)
-cannonball_album.build_album_dict()
-cannonball_album.print_album_attributes()
+# cannonball_catalog.make_string_soup()
+print cannonball_catalog.string_markup[1]
+
+
+# string_markup = cannonball_catalog.unicode_list[0] # first item in unicode list
+# catalog_soup = cannonball_catalog.content
+# cannonball_album = Album(string_markup, catalog_soup)
+
+# cannonball_album.extract_personnel_strings()
+
+# cannonball_album.build_album_dict()
+# cannonball_album.print_album_attributes()
 
 # Available Album Dictionary Attributes:
 # ['personnel_2', 'personnel_1', 'session_1_date/location', 
