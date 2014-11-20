@@ -96,15 +96,9 @@ class Album(): #catalog_soup
 		self.string_markup = string_markup
 		self.catalog_soup = catalog_soup
 		self.personnel_strings = []
-		self.extract_personnel_strings()
-		self.album_dict = {}
-		self.create_personnel_dicts()
 		self.personnel_string_id = 0
 		self.sibling_limit = 0
-		self.set_sibling_limit()
-		self.find_personnel_string_id()
-		self.assign_album_data_to_album_dict()
-
+		self.album_dict = {}
 
 	def extract_personnel_strings(self):
 		"""
@@ -174,16 +168,7 @@ class Album(): #catalog_soup
 
 	def assign_album_data_to_album_dict(self):
 		"""
-		Assign album info to key:value dictionary entries stored in the
-		album_dict attribute.
-
-		Locate the starting point in catalog_soup with personnel_string_id.
-		Retrieve recording date/location and track information from as many
-		<div> and <table> tags as delimited by the sibling_limit attribute.
-
-		Track info takes the form of a dictionary where each key is a track
-		identifier string and each value is the track name. That dict is then
-		stored as the value to a dict entry in the album_dict attribute.
+		this needs to be broken up into multiple functions
 		"""
 		start_tag = self.catalog_soup.find(
 					 "a", {"name":self.personnel_string_id})
@@ -197,7 +182,14 @@ class Album(): #catalog_soup
 			key = "session_" + str(session_count) + "_date/location"
 			self.album_dict[key] = div.string
 			session_count += 1
-		# assign track info to album_dict
+		
+	def assign_track_info(self):
+		"""
+		write docstring
+		"""
+		start_tag = self.catalog_soup.find(
+					 "a", {"name":self.personnel_string_id})
+		parent_tag = start_tag.find_parent("h3")
 		table_count = parent_tag.find_next_siblings(
 					  "table", limit=self.sibling_limit)
 		session_count = 1
@@ -221,6 +213,15 @@ class Album(): #catalog_soup
 				count += 1
 			self.album_dict[key] = track_data
 			session_count += 1
+
+	def build_album_dict(self):
+		self.extract_personnel_strings()
+		self.create_personnel_dicts()
+		self.find_personnel_string_id()
+		self.set_sibling_limit()
+		self.assign_album_data_to_album_dict()
+		self.assign_track_info()
+
 		
 	##### Printing Functions #####
 	
@@ -256,7 +257,7 @@ cannonball_catalog = ArtistCatalog(test_page)
 string_markup = cannonball_catalog.unicode_list[0] # first item in unicode list
 catalog_soup = cannonball_catalog.content
 cannonball_album = Album(string_markup, catalog_soup)
-cannonball_album.create_personnel_dicts()
+cannonball_album.build_album_dict()
 cannonball_album.print_album_attributes()
 
 # Available Album Dictionary Attributes:
