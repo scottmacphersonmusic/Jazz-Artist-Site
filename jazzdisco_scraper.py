@@ -64,10 +64,10 @@ class Album():
 		BeautifulSoup object containing the entire artist catalog as input and
 		produce a dictionary containing all the album's data.
 
-		string_markup will be one of the items from the unicode_list attribute
-		of an ArtistCatalog object. 
+		string_markup will be ONE of the items from the string_markup
+		attribute of an ArtistCatalog object. 
 
-		catalog_soup will be a BeautifulSoup object stored in the content
+		catalog_soup will be a BeautifulSoup object stored in the catalog_soup
 		attribute of an ArtistCatalog object.
 
 		personnel_string_id and sibling_limit are attributes used to determine
@@ -85,34 +85,16 @@ class Album():
 		self.sibling_limit = 0
 		self.album_dict = {}
 
-
-### BOOKMARK: was in the middle of fixing this when i realized i needed to adjust the unicode list function
 	def extract_personnel_strings(self):
 		"""
-		Use the string_markup attribute from __init__ to isolate and extract
-		strings of text embedded in the markup describing recording personnel
-		that are not accessible by using BeautifulSoup methods.  Assign the
-		resulting personnel strings to the __init__ attribute
-		personnel_strings.
+		Parse string_markup to isolate and extract all personnel strings.
 		"""
-		# find first personnel string
-		# start_1 = string_markup.index("</h3>") + 5 # tag is 5 characters long
-		# end_1 = string_markup.index('<div class="date">')
-		# personnel_string_1 = string_markup[start_1:end_1]
-		# self.personnel_strings.append(personnel_string_1)
-		# # find second personnel string
-		# markup_copy = string_markup
-		# start_2 = markup_copy.split("</table>")[1]
-		# end_2 = start_2.index("<div")
-		# personnel_string_2 = start_2[:end_2]
-		# self.personnel_strings.append(personnel_string_2)
-		target_string = string_markup.split("</h3>")[1].encode('ascii', 'ignore').strip("\n")
+		target_string = string_markup.split("</h3>")[1]
 		split_strings = target_string.split("</table>")
-		for string in split_strings:
-			print string
+		self.personnel_strings = [string_list.splitlines()[1] 
+								  for string_list in split_strings
+								  if len(string_list) > 1]
 		
-		
-
 	def create_personnel_dicts(self):
 		"""
 		Use the album_artists() function from the personnelparser module to
@@ -247,18 +229,15 @@ class Album():
 category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
-# cannonball_catalog.make_string_soup()
-print cannonball_catalog.string_markup[1]
-
-
-# string_markup = cannonball_catalog.unicode_list[0] # first item in unicode list
-# catalog_soup = cannonball_catalog.content
-# cannonball_album = Album(string_markup, catalog_soup)
+string_markup = cannonball_catalog.string_markup[1] # first album markup
+catalog_soup = cannonball_catalog.catalog_soup
+cannonball_album = Album(string_markup, catalog_soup)
 
 # cannonball_album.extract_personnel_strings()
+# print cannonball_album.personnel_strings
 
-# cannonball_album.build_album_dict()
-# cannonball_album.print_album_attributes()
+cannonball_album.build_album_dict()
+cannonball_album.print_album_attributes()
 
 # Available Album Dictionary Attributes:
 # ['personnel_2', 'personnel_1', 'session_1_date/location', 
