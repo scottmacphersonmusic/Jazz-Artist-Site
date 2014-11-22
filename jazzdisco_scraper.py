@@ -194,30 +194,57 @@ class Album():
 	##### Printing Functions #####
 	
 	def print_personnel(self, personnel_dict):
-		for d in personnel_dict:
-			print "\t"*2, d
+		for artist_dict in personnel_dict:
+			keys = artist_dict.keys()
+			name = [word for word in keys if "name" in word]
+			inst = [word for word in keys if "inst" in word]
+			tracks = [word for word in keys if "tracks" in word]
+			print "\t\t",
+			for word in name[::-1]:
+				print artist_dict[word] + " ",
+			if len(tracks) > 0:
+				print " --- ",
+				for word in inst[:(len(inst) - 1)]:
+					print artist_dict[word] + ", ",
+				print artist_dict[inst[-1]],
+				for word in tracks:
+					print " --- (tracks " + artist_dict[word] + ")"
+			else:
+				print " --- ",
+				for word in inst[:(len(inst) - 1)]:
+					print artist_dict[word] + ", ",
+				print artist_dict[inst[-1]]
+
 
 	def print_tracks(self, track_dict):
 		track_keys = track_dict.keys()
 		for key in track_keys[::-1]:
 			track = track_dict[key]
-			print "\t\t" + "ID: " + track['id'] + "\t\tTitle: " + track['title']
+			print "\t\t" + track['id'] + " --- " + track['title']
 	
 	def print_album_attributes(self):
 		"""Print album_dict attributes to the console in human readable form"""
 		t = "\t"
+		keys = self.album_dict.keys()
+		date_loc = [word for word in keys if "date" in word]
+		personnel = [word for word in keys if "personnel" in word]
+		tracks = [word for word in keys if "tracks" in word]
+		if len(date_loc) != len(personnel) != len(tracks):
+			print "Error: some session info may be missing"
+		session_counter = 1
 		print "\n"
 		print "Album Title:	", self.album_dict['album_title/id'], "\n"
-		print "Session 1: ", self.album_dict['session_1_date/location']
-		print t, "Personnel:"
-		print self.print_personnel(self.album_dict['personnel_1'])
-		print t, "Tracks: "
-		print self.print_tracks(self.album_dict['session_1_tracks']), "\n"
-		print "Session 2: ", self.album_dict['session_2_date/location']
-		print t, "Personnel: " 
-		print self.print_personnel(self.album_dict['personnel_2'])
-		print t, "Tracks: " 
-		print self.print_tracks(self.album_dict['session_2_tracks']), "\n"
+		for item in date_loc:
+			print "Session " + str(session_counter) + ": ", self.album_dict[
+						'session_' + str(session_counter) + '_date/location']
+			print "\n", t, "Personnel:"
+			self.print_personnel(self.album_dict['personnel_'
+				+ str(session_counter)]), "\n"
+			print "\n", t, "Tracks:"
+			self.print_tracks(self.album_dict['session_' + str(session_counter)
+				+ '_tracks']), "\n"
+			print "\n"
+			session_counter += 1
 	
 
 # Temporary Instantiation Tests:
