@@ -81,7 +81,7 @@ class Album():
 		self.string_markup = string_markup
 		self.catalog_soup = catalog_soup
 		self.personnel_strings = []
-		self.personnel_string_id = 0
+		self.parent_tag = 0
 		self.sibling_limit = 0
 		self.album_dict = {}
 
@@ -102,37 +102,32 @@ class Album():
 		Assign each list to its own key in the self.album_dict attribute. 
 		"""
 		string_num = 1
-		for string in self.personnel_strings:
-			album_artist = personnelparser.album_artists(
-						   string.encode('ascii', 'ignore'))
+		for personnel_string in self.personnel_strings:
+			album_artist = personnelparser.album_artists(personnel_string)
 			key = "personnel_" + str(string_num)
 			self.album_dict[key] = album_artist 
 			string_num += 1
 
-	def find_personnel_string_id(self):
+	def find_parent_tag(self):
 		"""
 		Use the string_markup attribute to extract the text assigned to the
-		'name' property embedded within the <a> tag.  Assign the resulting
-		string to the __init__ attribute personnel_string_id.
-
-			Example:
-				<a name="personnel_string_id">
-
-		This string should be a unique identifier of a specfic album's content
-		markup within the catalog and serve as a starting point for navigating
-		the BeautifulSoup object of the same markup stored in the catalog_soup
-		attribute.
+		'name' property embedded within the <a> tag. Assign a BS tag object of
+		the <h3> tag enclosing that to self.parent_tag to provide a starting place for assigning
+		album info.
 		"""
 		split_markup = self.string_markup.split('name="')
 		end = split_markup[1].index('">')
-		self.personnel_string_id = split_markup[1][:end]
-
+		personnel_string_id = split_markup[1][:end]
+		start_tag = self.catalog_soup.find(
+					 "a", {"name":personnel_string_id})
+		self.parent_tag = start_tag.find_parent("h3")
+		
 	def set_sibling_limit(self):
 		"""
 		Scan string_markup to see how many div and table tags are present in
 		the markup.  The result should indicate how many sibling tags past the 
-		<h3> tag enclosing the personnel_string_id to account for.  Assign the
-		result to the sibling_limit attribute.
+		<h3> parent tag to account for.  Assign the result to the
+		sibling_limit attribute.
 		"""
 		div_count = self.string_markup.count('<div class="date">')
 		table_count = self.string_markup.count('<table')
@@ -141,17 +136,18 @@ class Album():
 		else:
 			self.sibling_limit = div_count
 
-	def assign_album_data_to_album_dict(self):
-		"""
-		Locate album title, session date and location data and assign to
-		album_dict.
-		"""
-		start_tag = self.catalog_soup.find(
-					 "a", {"name":self.personnel_string_id})
-		parent_tag = start_tag.find_parent("h3")
+	def assign_album_title_to_dict(self):
+		"""Assign album title to album_dict."""
+		parent_tag = self.parent_tag
 		self.album_dict['album_title/id'] = parent_tag.string
-		# assign date/location to album_dict
-		div_count = parent_tag.find_next_siblings(
+		
+	def assign_date_location_to_dict(self):
+		"""
+		Determine how many <div> tags containing recording location and date
+		info are in the markup for this album and assign each one to the 
+		album_dict attribute.
+		"""
+		div_count = self.parent_tag.find_next_siblings(
 					"div", limit=self.sibling_limit)
 		session_count = 1
 		for div in div_count:
@@ -159,13 +155,14 @@ class Album():
 			self.album_dict[key] = div.string
 			session_count += 1
 		
-	def assign_track_info(self):
-		"""Locate track data and assign to album_dict."""
+	def assign_track_info_to_dict(self):
+		"""
+		Determine how many <table> tags containing track info are in the
+		markup for this album and assign a dictionary of the info for each
+		one to the album_dict attribute.
+		"""
 		# there must be a better way to accomplish what this function does!
-		start_tag = self.catalog_soup.find(
-					 "a", {"name":self.personnel_string_id})
-		parent_tag = start_tag.find_parent("h3")
-		table_count = parent_tag.find_next_siblings(
+		table_count = self.parent_tag.find_next_siblings(
 					  "table", limit=self.sibling_limit)
 		session_count = 1
 		for table in table_count:
@@ -192,10 +189,11 @@ class Album():
 	def build_album_dict(self):
 		self.extract_personnel_strings()
 		self.create_personnel_dicts()
-		self.find_personnel_string_id()
+		self.find_parent_tag()
 		self.set_sibling_limit()
-		self.assign_album_data_to_album_dict()
-		self.assign_track_info()
+		self.assign_album_title_to_dict()
+		self.assign_date_location_to_dict()
+		self.assign_track_info_to_dict()
 
 		
 	##### Printing Functions #####
@@ -233,10 +231,8 @@ string_markup = cannonball_catalog.string_markup[1] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
-# cannonball_album.extract_personnel_strings()
-# print cannonball_album.personnel_strings
-
 cannonball_album.build_album_dict()
+
 cannonball_album.print_album_attributes()
 
 # Available Album Dictionary Attributes:
