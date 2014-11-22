@@ -158,11 +158,9 @@ class Album():
 	def assign_track_info_to_dict(self):
 		"""
 		Determine how many <table> tags containing track info are in the
-		markup for this album and assign a dictionary of the info for each
-		one to the album_dict attribute.
-		
-		re-write this!
-
+		markup for this album and create a dictionary for each one which is
+		then assigned to self.album_dict. The value of each dictionary will be
+		another dictionary containing ID and title info for each track.
 		"""
 		table_tags = self.parent_tag.find_next_siblings(
 					  "table", limit=self.sibling_limit)
@@ -170,39 +168,15 @@ class Album():
 		for table in table_tags:
 			session_key = "session_" + str(session_count) + "_tracks"
 			track_data = {}
-			table_rows = table.find_all("tr") # can i condense this line with the one beneath it?
-			table_data = [tr.find_all("td") for tr in table_rows]
+			table_data = [tr.find_all("td") for tr in table.find_all("tr")]
 			track_count = 1
 			for td_list in table_data:
 				track_key = "track_" + str(track_count)
-				track_dict = {"id": td_list[0].string, "title": td_list[1].string}
+				track_dict = {"id": td_list[0].string, "title": td_list[1].string.rstrip("\n")}
 				track_data[track_key] = track_dict
 				track_count += 1
 			self.album_dict[session_key] = track_data
 			session_count += 1
-		
-
-		# session_count = 1
-		# for table in table_tags:
-		# 	stripped_strings = table.stripped_strings
-		# 	key = "session_" + str(session_count) + "_tracks"
-		# 	track_data = {}
-		# 	keys = []
-		# 	values = []
-		# 	count = 0
-		# 	for string in stripped_strings:
-		# 		if count % 2 == 0:
-		# 			keys.append(string.encode('ascii', 'ignore'))
-		# 			count += 1
-		# 		else:
-		# 			values.append(string.encode('ascii', 'ignore'))
-		# 			count += 1
-		# 	count = 0
-		# 	for k in keys:
-		# 		track_data[keys[count]] = values[count]
-		# 		count += 1
-		# 	self.album_dict[key] = track_data
-		# 	session_count += 1
 
 	def build_album_dict(self):
 		"""
@@ -217,7 +191,6 @@ class Album():
 		self.assign_date_location_to_dict()
 		self.assign_track_info_to_dict()
 
-		
 	##### Printing Functions #####
 	
 	def print_personnel(self, personnel_dict):
@@ -225,11 +198,10 @@ class Album():
 			print "\t"*2, d
 
 	def print_tracks(self, track_dict):
-		session_count = 1
-		session_key = "session_" + str(session_count) + "_tracks"
-		if session_key in d:
-			print d
-			session_count += 1
+		track_keys = track_dict.keys()
+		for key in track_keys[::-1]:
+			track = track_dict[key]
+			print "\t\t" + "ID: " + track['id'] + "\t\tTitle: " + track['title']
 	
 	def print_album_attributes(self):
 		"""Print album_dict attributes to the console in human readable form"""
