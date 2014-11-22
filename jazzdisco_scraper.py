@@ -147,10 +147,10 @@ class Album():
 		info are in the markup for this album and assign each one to the 
 		album_dict attribute.
 		"""
-		div_count = self.parent_tag.find_next_siblings(
+		div_tags = self.parent_tag.find_next_siblings(
 					"div", limit=self.sibling_limit)
 		session_count = 1
-		for div in div_count:
+		for div in div_tags:
 			key = "session_" + str(session_count) + "_date/location"
 			self.album_dict[key] = div.string
 			session_count += 1
@@ -160,33 +160,55 @@ class Album():
 		Determine how many <table> tags containing track info are in the
 		markup for this album and assign a dictionary of the info for each
 		one to the album_dict attribute.
+		
+		re-write this!
+
 		"""
-		# there must be a better way to accomplish what this function does!
-		table_count = self.parent_tag.find_next_siblings(
+		table_tags = self.parent_tag.find_next_siblings(
 					  "table", limit=self.sibling_limit)
 		session_count = 1
-		for table in table_count:
-			stripped_strings = table.stripped_strings
-			key = "session_" + str(session_count) + "_tracks"
+		for table in table_tags:
+			session_key = "session_" + str(session_count) + "_tracks"
 			track_data = {}
-			keys = []
-			values = []
-			count = 0
-			for string in stripped_strings:
-				if count % 2 == 0:
-					keys.append(string.encode('ascii', 'ignore'))
-					count += 1
-				else:
-					values.append(string.encode('ascii', 'ignore'))
-					count += 1
-			count = 0
-			for k in keys:
-				track_data[keys[count]] = values[count]
-				count += 1
-			self.album_dict[key] = track_data
+			table_rows = table.find_all("tr") # can i condense this line with the one beneath it?
+			table_data = [tr.find_all("td") for tr in table_rows]
+			track_count = 1
+			for td_list in table_data:
+				track_key = "track_" + str(track_count)
+				track_dict = {"id": td_list[0].string, "title": td_list[1].string}
+				track_data[track_key] = track_dict
+				track_count += 1
+			self.album_dict[session_key] = track_data
 			session_count += 1
+		
+
+		# session_count = 1
+		# for table in table_tags:
+		# 	stripped_strings = table.stripped_strings
+		# 	key = "session_" + str(session_count) + "_tracks"
+		# 	track_data = {}
+		# 	keys = []
+		# 	values = []
+		# 	count = 0
+		# 	for string in stripped_strings:
+		# 		if count % 2 == 0:
+		# 			keys.append(string.encode('ascii', 'ignore'))
+		# 			count += 1
+		# 		else:
+		# 			values.append(string.encode('ascii', 'ignore'))
+		# 			count += 1
+		# 	count = 0
+		# 	for k in keys:
+		# 		track_data[keys[count]] = values[count]
+		# 		count += 1
+		# 	self.album_dict[key] = track_data
+		# 	session_count += 1
 
 	def build_album_dict(self):
+		"""
+		Call all of the functions necessary to complete the album_dict
+		attribute.
+		"""
 		self.extract_personnel_strings()
 		self.create_personnel_dicts()
 		self.find_parent_tag()
@@ -202,9 +224,12 @@ class Album():
 		for d in personnel_dict:
 			print "\t"*2, d
 
-	def print_tracks(self, track_list):
-		for d in track_list:
-			print "\t"*2, d, ": ", track_list[d]
+	def print_tracks(self, track_dict):
+		session_count = 1
+		session_key = "session_" + str(session_count) + "_tracks"
+		if session_key in d:
+			print d
+			session_count += 1
 	
 	def print_album_attributes(self):
 		"""Print album_dict attributes to the console in human readable form"""
