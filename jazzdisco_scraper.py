@@ -6,13 +6,13 @@ scrape artist recording catalog data.
 
 The ArtistCatalog class will recieve a url for an artist catalog page as input
 and construct an object that stores a BeautifulSoup object of the catalog's
-content in the attribute content. Also will store a list of unicode strings
-that each represent the markup for one album's content in the attribute
-self.unicode_list.
+content in the attribute catalog_soup. Also will store a list of strings that
+each represent the markup for one album's content in the attribute
+string_markup.
 
 The Album class will recieve a string containing a given album's content
 markup and a BeautifulSoup object of the artist catalog as input (both from
-an instantiation of the ArtistCatalog class) and produce a dictionary
+an instance of the ArtistCatalog class) and produce a dictionary
 containing all the album's data stored in the album_dict attribute.
 """
 
@@ -60,7 +60,7 @@ class Album():
 
 	def __init__(self, string_markup, catalog_soup):
 		"""
-		Recieve a unicode string containing the album's content markup and a
+		Recieve a string containing the album's content markup and a
 		BeautifulSoup object containing the entire artist catalog as input and
 		produce a dictionary containing all the album's data.
 
@@ -99,7 +99,7 @@ class Album():
 		"""
 		Use the album_artists() function from the personnelparser module to
 		create a list of artist dictionaries for each personnel string.
-		Assign each list to its own key in the self.album_dict attribute. 
+		Assign each list its own key in the self.album_dict attribute. 
 		"""
 		string_num = 1
 		for personnel_string in self.personnel_strings:
@@ -112,8 +112,8 @@ class Album():
 		"""
 		Use the string_markup attribute to extract the text assigned to the
 		'name' property embedded within the <a> tag. Assign a BS tag object of
-		the <h3> tag enclosing that to self.parent_tag to provide a starting place for assigning
-		album info.
+		the <h3> tag enclosing that to parent_tag to provide a starting place
+		for assigning album info.
 		"""
 		split_markup = self.string_markup.split('name="')
 		end = split_markup[1].index('">')
@@ -125,7 +125,7 @@ class Album():
 	def set_sibling_limit(self):
 		"""
 		Scan string_markup to see how many div and table tags are present in
-		the markup.  The result should indicate how many sibling tags past the 
+		the markup.  The result should indicate how many sibling tags past the
 		<h3> parent tag to account for.  Assign the result to the
 		sibling_limit attribute.
 		"""
@@ -172,7 +172,8 @@ class Album():
 			track_count = 1
 			for td_list in table_data:
 				track_key = "track_" + str(track_count)
-				track_dict = {"id": td_list[0].string, "title": td_list[1].string.rstrip("\n")}
+				track_dict = {"id": td_list[0].string,
+							  "title": td_list[1].string.rstrip("\n")}
 				track_data[track_key] = track_dict
 				track_count += 1
 			self.album_dict[session_key] = track_data
@@ -249,15 +250,20 @@ class Album():
 
 # Temporary Instantiation Tests:
 category_links = get_category_links(BASE_URL)
-test_page = category_links[0] # Cannonball catalog
+test_page = category_links[4] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
-string_markup = cannonball_catalog.string_markup[1] # first album markup
-catalog_soup = cannonball_catalog.catalog_soup
-cannonball_album = Album(string_markup, catalog_soup)
+s = cannonball_catalog.string_markup
+for m in s[301:370]:
+	print m
+# print len(s) # = 370
 
-cannonball_album.build_album_dict()
+# string_markup = cannonball_catalog.string_markup[1] # first album markup
+# catalog_soup = cannonball_catalog.catalog_soup
+# cannonball_album = Album(string_markup, catalog_soup)
 
-cannonball_album.print_album_attributes()
+# cannonball_album.build_album_dict()
+
+# cannonball_album.print_album_attributes()
 
 # Available Album Dictionary Attributes:
 # ['personnel_2', 'personnel_1', 'session_1_date/location', 
