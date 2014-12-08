@@ -1,0 +1,76 @@
+<li><strong><a href="/cannonball-adderley/">Cannonball Adderley</a></strong>
+</li><li><a href="/gene-ammons/">Gene Ammons</a>
+</li><li><a href="/albert-ayler/">Albert Ayler</a>
+</li><li><a href="/chet-baker/">Chet Baker</a>
+</li><li><a href="/art-blakey/">Art Blakey</a>
+</li><li><a href="/tina-brooks/">Tina Brooks</a>
+</li><li><a href="/clifford-brown/">Clifford Brown</a>
+</li><li><a href="/dave-brubeck/">Dave Brubeck</a>
+</li><li><a href="/ray-bryant/">Ray Bryant</a>
+</li><li><a href="/donald-byrd/">Donald Byrd</a>
+</li><li><a href="/sonny-clark/">Sonny Clark</a>
+</li><li><a href="/ornette-coleman/">Ornette Coleman</a>
+</li><li><a href="/john-coltrane/">John Coltrane</a>
+</li><li><a href="/chick-corea/">Chick Corea</a>
+</li><li><a href="/sonny-criss/">Sonny Criss</a>
+</li><li><a href="/miles-davis/">Miles Davis</a>
+</li><li><a href="/paul-desmond/">Paul Desmond</a>
+</li><li><a href="/eric-dolphy/">Eric Dolphy</a>
+</li><li><a href="/lou-donaldson/">Lou Donaldson</a>
+</li><li><a href="/kenny-dorham/">Kenny Dorham</a>
+</li><li><a href="/kenny-drew/">Kenny Drew</a>
+</li><li><a href="/bill-evans/">Bill Evans</a>
+</li><li><a href="/tommy-flanagan/">Tommy Flanagan</a>
+</li><li><a href="/red-garland/">Red Garland</a>
+</li><li><a href="/stan-getz/">Stan Getz</a>
+</li><li><a href="/dizzy-gillespie/">Dizzy Gillespie</a>
+</li><li><a href="/dexter-gordon/">Dexter Gordon</a>
+</li><li><a href="/grant-green/">Grant Green</a>
+</li><li><a href="/johnny-griffin/">Johnny Griffin</a>
+</li><li><a href="/al-haig/">Al Haig</a>
+</li></ul>
+</td>
+<td align="left" valign="top" width="33%">
+<ul style="margin-bottom: 0">
+<li><a href="/hampton-hawes/">Hampton Hawes</a>
+</li><li><a href="/joe-henderson/">Joe Henderson</a>
+</li><li><a href="/milt-jackson/">Milt Jackson</a>
+</li><li><a href="/keith-jarrett/">Keith Jarrett</a>
+</li><li><a href="/elvin-jones/">Elvin Jones</a>
+</li><li><a href="/philly-joe-jones/">Philly Joe Jones</a>
+</li><li><a href="/duke-jordan/">Duke Jordan</a>
+</li><li><a href="/wynton-kelly/">Wynton Kelly</a>
+</li><li><a href="/roland-kirk/">Roland Kirk</a>
+</li><li><a href="/scott-lafaro/">Scott LaFaro</a>
+</li><li><a href="/booker-little/">Booker Little</a>
+</li><li><a href="/jackie-mclean/">Jackie McLean</a>
+</li><li><a href="/pat-metheny/">Pat Metheny</a>
+</li><li><a href="/charles-mingus/">Charles Mingus</a>
+</li><li><a href="/hank-mobley/">Hank Mobley</a>
+</li><li><a href="/thelonious-monk/">Thelonious Monk</a>
+</li><li><a href="/wes-montgomery/">Wes Montgomery</a>
+</li><li><a href="/lee-morgan/">Lee Morgan</a>
+</li><li><a href="/fats-navarro/">Fats Navarro</a>
+</li><li><a href="/phineas-newborn-jr/">Phineas Newborn Jr.</a>
+</li><li><a href="/charlie-parker/">Charlie Parker</a>
+</li><li><a href="/duke-pearson/">Duke Pearson</a>
+</li><li><a href="/art-pepper/">Art Pepper</a>
+</li><li><a href="/oscar-peterson/">Oscar Peterson</a>
+</li><li><a href="/bud-powell/">Bud Powell</a>
+</li><li><a href="/max-roach/">Max Roach</a>
+</li><li><a href="/sonny-rollins/">Sonny Rollins</a>
+</li><li><a href="/pharoah-sanders/">Pharoah Sanders</a>
+</li><li><a href="/shirley-scott/">Shirley Scott</a>
+</li><li><a href="/archie-shepp/">Archie Shepp</a>
+</li><li><a href="/wayne-shorter/">Wayne Shorter</a>
+</li></ul>
+</td>
+<td align="left" valign="top" width="33%">
+<ul>
+<li><a href="/horace-silver/">Horace Silver</a>
+</li><li><a href="/zoot-sims/">Zoot Sims</a>
+</li><li><a href="/bobby-timmons/">Bobby Timmons</a>
+</li><li><a href="/lennie-tristano/">Lennie Tristano</a>
+</li><li><a href="/stanley-turrentine/">Stanley Turrentine</a>
+</li><li><a href="/mccoy-tyner/">McCoy Tyner</a>
+</li><li><a href="/mal-waldron/">Mal Waldron</a>
