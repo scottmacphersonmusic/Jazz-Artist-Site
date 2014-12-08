@@ -27,13 +27,8 @@ def contains_digits(word):
 # artists = "Pharoah Sanders (tenor,soprano saxophone, bells, percussion) Michael White (violin, percussion) Lonnie Liston Smith (piano, electric piano, claves, percussion) Cecil McBee (bass, finger cymbals, percussion) Clifford Jarvis (drums, maracas, bells, percussion) James Jordan (ring cymbals -3)"
 # artists = "Clifford Brown, Art Farmer (trumpet) Ake Persson (trombone) Arne Domnerus (alto saxophone, clarinet) Lars Gullin (baritone saxophone) Bengt Hallberg (piano) Gunnar Johnson (bass) Jack Noren (drums) Quincy Jones (arranger, director)"
 # artists = "Chet Baker (trumpet) Ted Ottison (trumpet -5,6) Sonny Criss (alto saxophone -1,2,6) Jack Montrose (tenor saxophone -1/3,6) Les Thompson (harmonica -7) Al Haig (piano) Dave Bryant (bass) Larry Bunker (drums)"
-# artists = "Chet Baker, Pete Candoli (trumpet) Bob Enevoldsen (valve trombone) John Graas (French horn) Ray Siegel (tuba) Bud Shank (alto saxophone) Don Davidson (baritone saxophone) Gerry Mulligan (baritone saxophone, piano) Joe Mondragon (bass) Chico Hamilton (drums)"
-artists = "Chet Baker (trumpet) with Siegfried Achhammer, Klaus Mitchele, Rolf Schneebiegl, Hans Wilfert (trumpet) Werner Betz, Otto Bredl, Helmut Hauck, Heinz Hermansdorfer (trombone) Franz Von Klenck, Helmut Rheinhardt (alto saxophone) Bubi Aderhold, Paul Martin (tenor saxophone) Johnny Feigl (baritone saxophone) Werner Drexler (piano) Werner Schulze (bass) Silo Deutsch (drums) Kurt Edelhagen (leader)"
-# artists =
-# artists =
-# artists =
-# artists =
-# artists =
+artists = "Chet Baker, Pete Candoli (trumpet) Bob Enevoldsen (valve trombone) John Graas (French horn) Ray Siegel (tuba) Bud Shank (alto saxophone) Don Davidson (baritone saxophone) Gerry Mulligan (baritone saxophone, piano) Joe Mondragon (bass) Chico Hamilton (drums)"
+# artists = "Chet Baker (trumpet) with Siegfried Achhammer, Klaus Mitchele, Rolf Schneebiegl, Hans Wilfert (trumpet) Werner Betz, Otto Bredl, Helmut Hauck, Heinz Hermansdorfer (trombone) Franz Von Klenck, Helmut Rheinhardt (alto saxophone) Bubi Aderhold, Paul Martin (tenor saxophone) Johnny Feigl (baritone saxophone) Werner Drexler (piano) Werner Schulze (bass) Silo Deutsch (drums) Kurt Edelhagen (leader)"
 
 class AlbumPersonnel():
 
@@ -181,24 +176,17 @@ class AlbumPersonnel():
 		Recieve the 'instrument/track' sub-array of an artist array and return
 		True if a multiple-word instrument appears to be present.
 		"""
-			# ['(ring', 'cymbals', '-3)']
-			# ['(alto', 'saxophone)']
-
 		contains_multiple_word_instrument = False
-		# if len(instrument_array) == 2				\
-		# and not (instrument_array[0]).endswith(",") \
-		# and not contains_digits(instrument_array[1]):
-		# 	contains_multiple_word_instrument = True
-		
-		# for word in instrument_array:
-		# 	if word.endswith(",") and not contains_digits(word):
-		# 		contains_multiple_word_instrument = True
-
 		for word in instrument_array[:-1]:
 			if "," not in word[:-1]:
 				contains_multiple_word_instrument = True
-
 		return contains_multiple_word_instrument
+
+	def is_first_word_of_multiple_word_instrument(self, word, phrase_array, next_word_index):
+		return "," not in word \
+			and not word.endswith(")") \
+			and not contains_digits(word) \
+			and not contains_digits(phrase_array[next_word_index]) # next word is not track info
 
 	def join_multiple_word_instrument(self, instrument_array):
 		"""
@@ -209,14 +197,14 @@ class AlbumPersonnel():
 			Example:
 				['alto', 'saxophone'] becomes: ['alto saxophone']
 		"""
+		
+		local_instruments = [word for word in instrument_array]
 		revised_array = []
-		for word in instrument_array:
-			next_word = instrument_array.index(word) + 1
-			if "," not in word and not word.endswith(")") \
-			and not contains_digits(word) 				  \
-			and not contains_digits(instrument_array[next_word]):
-				revised_array.append(word + " " + instrument_array[next_word])
-				instrument_array.remove(instrument_array[next_word])
+		for word in local_instruments:
+			next_word_index = local_instruments.index(word) + 1
+			if self.is_first_word_of_multiple_word_instrument(word, local_instruments, next_word_index):
+				revised_array.append(word + " " + local_instruments[next_word_index])
+				local_instruments.remove(local_instruments[next_word_index])
 			else:
 				revised_array.append(word)
 		return revised_array
@@ -228,6 +216,7 @@ class AlbumPersonnel():
 		Call split_multiple_artists() on any artist arrays deemed necessary
 		by contains_multiple_artists() and return an array of artist arrays.
 		"""
+		
 		correct_multiple_artists = []
 		for artist_array in self.partitioned_artist_arrays():
 			if self.contains_multiple_artists(artist_array[0]):
@@ -235,6 +224,7 @@ class AlbumPersonnel():
 					temporary_array = []
 					temporary_array.append(artist)
 					temporary_array.append(artist_array[1])
+					# print "test: ", temporary_array
 					correct_multiple_artists.append(temporary_array)
 			else:
 				correct_multiple_artists.append(artist_array)
@@ -395,13 +385,34 @@ def print_album_artists():
 				print d[i], ", ",
 			print d[inst[-1]]
 
-print_album_artists()
+# print_album_artists()
+
 
 # personnel = AlbumPersonnel(artists)
-# target = personnel.partitioned_artist_arrays()[5]
-# print personnel.contains_multiple_word_instrument(target[1])
-# print personnel.join_multiple_word_instrument(target[1])
+# a = [['Franz', 'Von', 'Klenck,', 'Helmut', 'Rheinhardt'], ['(alto', 'saxophone)']]
+# print personnel.contains_multiple_artists(a[0])
+# print personnel.split_multiple_artists(a[0])
+# for array in personnel.correct_multiple_artists():
+# 	print array
+# for array in personnel.correct_multiple_ranges():
+# 	print array
+# personnel.correct_multiple_word_instruments()
+# for array in personnel.final_artist_arrays:
+# 	print array
 
+# def c_m_a(artist_array):
+# 	correct_multiple_artists = []
+# 	if personnel.contains_multiple_artists(artist_array[0]):
+# 		for artist in personnel.split_multiple_artists(artist_array[0]):
+# 			temporary_array = []
+# 			temporary_array.append(artist)
+# 			temporary_array.append(artist_array[1])
+# 			correct_multiple_artists.append(temporary_array)
+# 	else:
+# 		correct_multiple_artists.append(artist_array)
+# 	return correct_multiple_artists
+
+# print c_m_a(a)
 
 # To Do:
 	# - set this module up to automatically take in a personnel string and return
