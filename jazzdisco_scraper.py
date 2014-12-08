@@ -261,9 +261,9 @@ for m in s[301:370]:
 # catalog_soup = cannonball_catalog.catalog_soup
 # cannonball_album = Album(string_markup, catalog_soup)
 
-# cannonball_album.build_album_dict()
+cannonball_album.build_album_dict()
 
-# cannonball_album.print_album_attributes()
+cannonball_album.print_album_attributes()
 
 # Available Album Dictionary Attributes:
 # ['personnel_2', 'personnel_1', 'session_1_date/location', 
