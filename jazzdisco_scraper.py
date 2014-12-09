@@ -85,60 +85,84 @@ class Album():
 		self.sibling_limit = 0
 		self.album_dict = {}
 
+#	#	#	#	#	Process Personnel Strings 	#	#	#	#	#	#	#
+
 	def extract_personnel_strings(self):
 		"""
 		Parse string_markup to isolate and extract all personnel strings.
 		"""
 		target_string = string_markup.split("</h3>")[1]
 		split_strings = target_string.split("</table>")
-		self.personnel_strings = [string_list.splitlines()[1] 
+		personnel = [string_list.splitlines()[1] 
 								  for string_list in split_strings
 								  if len(string_list) > 1]
-		
-	def revise_personnel_strings(self):
-		"""
-		Check extracted personnel strings to see if they use a <span> tag and
-		'replaces' shorthand to list personnel.
+		return personnel
 
-		!!! Need to clean(/split) this docstring/function up !!!
-		"""
-		# modify first string
-		first_string = self.personnel_strings[0]
+	def remove_markup_from_first_string(self, personnel):
+		first_string = personnel[0]
 		if '<span class="same">' \
 		and ': </span>same session' \
-		in first_string: 
-			lstrip_string = first_string.lstrip('<span class="same">')
-			clean_string = lstrip_string.rstrip(': </span>same session')
-			self.personnel_strings[0] = clean_string
-		if '<span class="same">' \
+		in first_string:
+			remove_left = first_string.lstrip('<span class="same">')
+			remove_right = remove_left.rstrip(': </span>same session')
+			personnel[0] = remove_right
+		elif '<span class="same">' \
 		and ': </span>same personnel' \
 		in first_string: 
-			lstrip_string = first_string.lstrip('<span class="same">')
-			clean_string = lstrip_string.rstrip(': </span>same personnel')
-			self.personnel_strings[0] = clean_string
-		# replace relevant artist with new list of artists using mostly first string
-		# first_string = self.personnel_strings[0]
-		for string in self.personnel_strings:
-			index = self.personnel_strings.index(string)
-			if string.count("replaces") > 1:
-				print "PROBLEM!!! more than one new artist"
-			# replicate personnel for 'same personnel' shorthand
-			elif "same personnel" in string:
-				self.personnel_strings[index] = clean_string
-			elif "replaces" in string:
-				# index = self.personnel_strings.index(string)
-				replacement = string.split("replaces ")
-				new_artist = replacement[0].rstrip()
-				old_artist = replacement[1]
-				old_artist_index = first_string.index(old_artist)
-				split_strings = first_string.split(old_artist)
-			# clean up left string
-				left_string = split_strings[0].rsplit(")", 1)[0]
-				# print left_string
-			# clean up right string
-				right_string = split_strings[1].split(") ", 1)[1]
-			# cat left string, new artist, right string. BOOM!
-				self.personnel_strings[index] = left_string + ") " + new_artist + " " + right_string
+			remove_left = first_string.lstrip('<span class="same">')
+			remove_right = remove_left.rstrip(': </span>same personnel')
+			personnel[0] = remove_right
+		elif 'same' in personnel[0]:
+			print "ERROR: unrecognized version of 'same' shorthand"
+		return personnel
+
+	def expand_same_personnel(self, personnel):
+		"""
+		Substitue the original personnel for 'same personnel' shorthand and
+		return the resulting array.
+		"""
+		if len(personnel) > 1:
+			for string in personnel[1:]:
+				index = personnel.index(string)
+				if "same personnel" in string:
+					personnel[index] = personnel[0]
+		return personnel
+			
+	def expand_replaces(self, personnel):
+		"""
+		Substitute the original personnel with a new artist where identified
+		by 'replaces' shorthand and return the resulting array.
+		"""
+		if len(personnel) > 1:
+			for string in personnel[1:]:	
+				index = personnel.index(string)
+				first_string = personnel[0]
+				if string.count("replaces") > 1:
+					print "ERROR: more than one new artist?"
+				elif "replaces" in string:
+					replacement = string.split("replaces ")
+					new_artist = replacement[0].rstrip()
+					old_artist = replacement[1]
+					split_strings = first_string.split(old_artist)
+					left_string = split_strings[0].rsplit(")", 1)[0]
+					right_string = split_strings[1].split(") ", 1)[1]
+					personnel[index] = left_string + ") " \
+									   + new_artist + " " \
+									   + right_string
+		return personnel
+
+	def process_personnel_strings(self):
+		"""
+		Call the functions involved in extracting and ammending personnel
+		strings and assign the results to self.personnel_strings.
+		"""
+		original_strings = self.extract_personnel_strings()
+		remove_markup = self.remove_markup_from_first_string(original_strings)
+		expand_same_personnel = self.expand_same_personnel(remove_markup)
+		expand_replaces = self.expand_replaces(expand_same_personnel)
+		self.personnel_strings = expand_replaces
+
+#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#
 
 	def create_personnel_dicts(self):
 		"""
@@ -229,8 +253,7 @@ class Album():
 		Call all of the functions necessary to complete the album_dict
 		attribute.
 		"""
-		self.extract_personnel_strings()
-		self.revise_personnel_strings()
+		self.process_personnel_strings()
 		self.create_personnel_dicts()
 		self.find_parent_tag()
 		self.set_sibling_limit()
@@ -299,18 +322,41 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[8] # first album markup
+string_markup = cannonball_catalog.string_markup[5] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
-# cannonball_album.extract_personnel_strings()
+# Problem Albums:
+	# cannonball 10
+		# orchestra and undefined orchestra in personnel string
+	# cannonball 15, 17, 20, 21, 24, 28
+		# no track id in track listing table/s
+	# cannonball 16
+		# 'cannonball adderley as ronnie peters' WTF???
+	# cannonball 18, 22
+		# 'add Nat Adderley' - deal with add in personnel strings
+	# cannonball 28
+		# gnarly personnel string with 'replaces' shorthand
+	# cannonball 29
+		# no idea... wtf
 
-# cannonball_album.revise_personnel_strings()
+# cannonball_album.process_personnel_strings()
+
+# p = cannonball_album.extract_personnel_strings()
+
+# r = cannonball_album.remove_markup_from_first_string(p)
+
+# e_s = cannonball_album.expand_same_personnel(r)
+
+# e_r = cannonball_album.expand_replaces(e_s)
+
+# for string in e_r:
+# 	print string
 
 # print "\nPersonnel Strings: \n"
 # for string in cannonball_album.personnel_strings:
 # 	print string, "\n"
-
+	
 cannonball_album.build_album_dict()
 
 cannonball_album.print_album_attributes()
@@ -331,11 +377,6 @@ cannonball_album.print_album_attributes()
 	# another module to deal with record label catalog info?
 		# should record label catalog info be cross-checked against artist catalog info?
 		# identify the record lable links diffently to treat differently?
-
-### BOOKMARK:
-	# deal with "same personnel" personnel strings that don't use "replaces"
-		# use 7th album from cannonball catalog to fix, start by checking original extracted
-		# personnel strings
 
 	# do I need to store data about the final meta string that gives info about alternate
 	# issuances? 
