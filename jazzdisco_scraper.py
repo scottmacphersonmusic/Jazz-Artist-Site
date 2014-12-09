@@ -111,12 +111,16 @@ class Album():
 			clean_string = lstrip_string.rstrip(': </span>same session')
 			self.personnel_strings[0] = clean_string
 		# replace relevant artist with new list of artists using mostly first string
-		first_string = self.personnel_strings[0]
+		# first_string = self.personnel_strings[0]
 		for string in self.personnel_strings:
+			index = self.personnel_strings.index(string)
 			if string.count("replaces") > 1:
 				print "PROBLEM!!! more than one new artist"
-			if "replaces" in string:
-				index = self.personnel_strings.index(string)
+			# replicate personnel for 'same personnel' shorthand
+			elif "same personnel" in string:
+				self.personnel_strings[index] = first_string
+			elif "replaces" in string:
+				# index = self.personnel_strings.index(string)
 				replacement = string.split("replaces ")
 				new_artist = replacement[0].rstrip()
 				old_artist = replacement[1]
@@ -267,7 +271,7 @@ class Album():
 		personnel = [word for word in keys if "personnel" in word]
 		tracks = [word for word in keys if "tracks" in word]
 		if len(date_loc) != len(personnel) != len(tracks):
-			print "Error: some session info may be missing"
+			print "Error: some session info or alternate issue ID info may be missing"
 		session_counter = 1
 		print "\n"
 		print "Album Title:	", self.album_dict['album_title/id'], "\n"
@@ -289,7 +293,7 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[5] # first album markup
+string_markup = cannonball_catalog.string_markup[7] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -297,7 +301,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # cannonball_album.revise_personnel_strings()
 
-# print "\npersonnel_strings: \n"
+# print "\nPersonnel Strings: \n"
 # for string in cannonball_album.personnel_strings:
 # 	print string, "\n"
 
@@ -321,6 +325,14 @@ cannonball_album.print_album_attributes()
 	# another module to deal with record label catalog info?
 		# should record label catalog info be cross-checked against artist catalog info?
 		# identify the record lable links diffently to treat differently?
-	# figure out how to deal with personnel strings stored in <span> tags
-		# do <span> tags always indicate 'replace' shorthand involved?
+
+### BOOKMARK:
+	# deal with "same personnel" personnel strings that don't use "replaces"
+		# use 7th album from cannonball catalog to fix, start by checking original extracted
+		# personnel strings
+
+	# do I need to store data about the final meta string that gives info about alternate
+	# issuances? 
+		# ex: '** also issued on EmArcy MG 36091; Verve 314 543 828-2'
+
 
