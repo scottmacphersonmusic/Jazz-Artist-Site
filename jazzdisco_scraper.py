@@ -95,6 +95,41 @@ class Album():
 								  for string_list in split_strings
 								  if len(string_list) > 1]
 		
+	def revise_personnel_strings(self):
+		"""
+		Check extracted personnel strings to see if they use a <span> tag and
+		'replaces' shorthand to list personnel.
+
+		!!! Need to clean(/split) this docstring/function up !!!
+		"""
+		# modify first string
+		first_string = self.personnel_strings[0]
+		if '<span class="same">' \
+		and ': </span>same session' \
+		in first_string: 
+			lstrip_string = first_string.lstrip('<span class="same">')
+			clean_string = lstrip_string.rstrip(': </span>same session')
+			self.personnel_strings[0] = clean_string
+		# replace relevant artist with new list of artists using mostly first string
+		first_string = self.personnel_strings[0]
+		for string in self.personnel_strings:
+			if string.count("replaces") > 1:
+				print "PROBLEM!!! more than one new artist"
+			if "replaces" in string:
+				index = self.personnel_strings.index(string)
+				replacement = string.split("replaces ")
+				new_artist = replacement[0].rstrip()
+				old_artist = replacement[1]
+				old_artist_index = first_string.index(old_artist)
+				split_strings = first_string.split(old_artist)
+			# clean up left string
+				left_string = split_strings[0].rsplit(")", 1)[0]
+				# print left_string
+			# clean up right string
+				right_string = split_strings[1].split(") ", 1)[1]
+			# cat left string, new artist, right string. BOOM!
+				self.personnel_strings[index] = left_string + ") " + new_artist + " " + right_string
+
 	def create_personnel_dicts(self):
 		"""
 		Use the album_artists() function from the personnelparser module to
@@ -185,6 +220,7 @@ class Album():
 		attribute.
 		"""
 		self.extract_personnel_strings()
+		self.revise_personnel_strings()
 		self.create_personnel_dicts()
 		self.find_parent_tag()
 		self.set_sibling_limit()
@@ -250,16 +286,20 @@ class Album():
 
 # Temporary Instantiation Tests:
 category_links = get_category_links(BASE_URL)
-test_page = category_links[4] # Cannonball catalog
+test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
-s = cannonball_catalog.string_markup
-for m in s[301:370]:
-	print m
-# print len(s) # = 370
 
-# string_markup = cannonball_catalog.string_markup[1] # first album markup
-# catalog_soup = cannonball_catalog.catalog_soup
-# cannonball_album = Album(string_markup, catalog_soup)
+string_markup = cannonball_catalog.string_markup[5] # first album markup
+catalog_soup = cannonball_catalog.catalog_soup
+cannonball_album = Album(string_markup, catalog_soup)
+
+# cannonball_album.extract_personnel_strings()
+
+# cannonball_album.revise_personnel_strings()
+
+# print "\npersonnel_strings: \n"
+# for string in cannonball_album.personnel_strings:
+# 	print string, "\n"
 
 cannonball_album.build_album_dict()
 
@@ -272,35 +312,6 @@ cannonball_album.print_album_attributes()
 
 	# ("meta", {"name":"City"}) to locate text in soup objects
 
-
-# Markup Patterns:	
-# content: <div id="catalog-data">
-# ( year of recording/age of artist: <h2> )
-# personnel string: indicated by newline character in dom - "data"
-# recording location/date: <div class="date">
-# track titles/catalog num: <table>
-	# additional personnel: text data following <table>
-	# additional tracks: <table>
-	# additional loc/date: <div class="date">
-
-
-# make album class 
-# *(some record info uses "replace" format with personnel for multiple sessions)
-# may wish to address age of artist info in catalog tables
-	
-	# album title, 				ex: Kenny Clarke - Bohemia After Dark
-	# album id, 					ex: Savoy MG 12017
-	# recording date/location, 		ex: NYC, June 28, 1955
-		# multiple sessions?
-	# personnel
-		# see 'personnel-parser.py'
-	# tracks
-		# track names
-		# track id's
-	# additional personnel
-	# additional tracks
-
-
 # make artist class
 	
 	# artist name
@@ -310,8 +321,6 @@ cannonball_album.print_album_attributes()
 	# another module to deal with record label catalog info?
 		# should record label catalog info be cross-checked against artist catalog info?
 		# identify the record lable links diffently to treat differently?
-	# flesh out extract_personnel_strings() or make new functions to grab all of the 
-	# 	personnel strings - there are often more than 2 and they are often very short
-	#	and describe who replaces who by instrument in shorthand syntax
-		# the whole module really needs to be redesigned to deal with these meta-strings
+	# figure out how to deal with personnel strings stored in <span> tags
+		# do <span> tags always indicate 'replace' shorthand involved?
 
