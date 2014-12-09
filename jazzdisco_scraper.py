@@ -110,6 +110,12 @@ class Album():
 			lstrip_string = first_string.lstrip('<span class="same">')
 			clean_string = lstrip_string.rstrip(': </span>same session')
 			self.personnel_strings[0] = clean_string
+		if '<span class="same">' \
+		and ': </span>same personnel' \
+		in first_string: 
+			lstrip_string = first_string.lstrip('<span class="same">')
+			clean_string = lstrip_string.rstrip(': </span>same personnel')
+			self.personnel_strings[0] = clean_string
 		# replace relevant artist with new list of artists using mostly first string
 		# first_string = self.personnel_strings[0]
 		for string in self.personnel_strings:
@@ -118,7 +124,7 @@ class Album():
 				print "PROBLEM!!! more than one new artist"
 			# replicate personnel for 'same personnel' shorthand
 			elif "same personnel" in string:
-				self.personnel_strings[index] = first_string
+				self.personnel_strings[index] = clean_string
 			elif "replaces" in string:
 				# index = self.personnel_strings.index(string)
 				replacement = string.split("replaces ")
@@ -271,7 +277,7 @@ class Album():
 		personnel = [word for word in keys if "personnel" in word]
 		tracks = [word for word in keys if "tracks" in word]
 		if len(date_loc) != len(personnel) != len(tracks):
-			print "Error: some session info or alternate issue ID info may be missing"
+			print "\nERROR: some session info or alternate issue ID info may be missing"
 		session_counter = 1
 		print "\n"
 		print "Album Title:	", self.album_dict['album_title/id'], "\n"
@@ -293,7 +299,7 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[7] # first album markup
+string_markup = cannonball_catalog.string_markup[8] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
