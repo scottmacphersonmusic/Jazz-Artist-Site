@@ -241,10 +241,16 @@ class Album():
 			track_count = 1
 			for td_list in table_data:
 				track_key = "track_" + str(track_count)
-				track_dict = {"id": td_list[0].string,
-							  "title": td_list[1].string.rstrip("\n")}
-				track_data[track_key] = track_dict
-				track_count += 1
+				if td_list[0].string is not None:  # first td is empty
+					print "\nfirst branch"
+					track_dict = {"id": td_list[0].string,
+								  "title": td_list[1].string.rstrip("\n")}
+					track_data[track_key] = track_dict
+					track_count += 1
+				else:
+					print "\nsecond branch:"
+					track_data[track_key] = td_list[1].string.rstrip("\n")
+					track_count += 1
 			self.album_dict[session_key] = track_data
 			session_count += 1
 
@@ -289,8 +295,12 @@ class Album():
 	def print_tracks(self, track_dict):
 		track_keys = track_dict.keys()
 		for key in track_keys[::-1]:
-			track = track_dict[key]
-			print "\t\t" + track['id'] + " --- " + track['title']
+			if type(track_dict[key]) is dict:
+				track = track_dict[key]
+				print "\t\t" + track['id'] + " --- " + track['title']
+			else:
+				print "\t\t", track_dict[key]
+				
 	
 	def print_album_attributes(self):
 		"""Print album_dict attributes to the console in human readable form"""
@@ -322,17 +332,25 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[5] # first album markup
+string_markup = cannonball_catalog.string_markup[28] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
 	# cannonball 10
 		# orchestra and undefined orchestra in personnel string
+	# cannonball 10
+		# also has issue with using 'same session' in place of personnel string?
 	# cannonball 15, 17, 20, 21, 24, 28
 		# no track id in track listing table/s
 	# cannonball 16
 		# 'cannonball adderley as ronnie peters' WTF???
+		# apparentely cannonball went by a couple pseudonyms:
+			# Spider Johnson
+			# Buckshot La Funque
+			# Ronnie Peters
+			# Jud Brotherly
+			# Blockbuster
 	# cannonball 18, 22
 		# 'add Nat Adderley' - deal with add in personnel strings
 	# cannonball 28
@@ -350,7 +368,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # e_r = cannonball_album.expand_replaces(e_s)
 
-# for string in e_r:
+# for string in e_s:
 # 	print string
 
 # print "\nPersonnel Strings: \n"
@@ -358,6 +376,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 # 	print string, "\n"
 	
 cannonball_album.build_album_dict()
+
 
 cannonball_album.print_album_attributes()
 
