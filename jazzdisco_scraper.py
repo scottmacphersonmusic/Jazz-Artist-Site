@@ -98,6 +98,16 @@ class Album():
 								  if len(string_list) > 1]
 		return personnel
 
+	def assign_and_remove_alternate_issue_info(self, personnel):
+		counter = 1
+		for string in personnel:
+			key = "alt_album_info_" + str(counter)
+			if "**" in string:
+				self.album_dict[key] = string
+				personnel.remove(string)
+			counter += 1
+		return personnel
+
 	def remove_markup_from_first_string(self, personnel):
 		first_string = personnel[0]
 		if '<span class="same">' \
@@ -157,7 +167,8 @@ class Album():
 		strings and assign the results to self.personnel_strings.
 		"""
 		original_strings = self.extract_personnel_strings()
-		remove_markup = self.remove_markup_from_first_string(original_strings)
+		assign_alt_issu_info = self.assign_and_remove_alternate_issue_info(original_strings)
+		remove_markup = self.remove_markup_from_first_string(assign_alt_issu_info)
 		expand_same_personnel = self.expand_same_personnel(remove_markup)
 		expand_replaces = self.expand_replaces(expand_same_personnel)
 		self.personnel_strings = expand_replaces
@@ -242,13 +253,11 @@ class Album():
 			for td_list in table_data:
 				track_key = "track_" + str(track_count)
 				if td_list[0].string is not None:  # first td is empty
-					print "\nfirst branch"
 					track_dict = {"id": td_list[0].string,
 								  "title": td_list[1].string.rstrip("\n")}
 					track_data[track_key] = track_dict
 					track_count += 1
 				else:
-					print "\nsecond branch:"
 					track_data[track_key] = td_list[1].string.rstrip("\n")
 					track_count += 1
 			self.album_dict[session_key] = track_data
@@ -302,6 +311,13 @@ class Album():
 				print "\t\t", track_dict[key]
 				
 	
+	def print_alt_issue_info(self):
+		keys = self.album_dict.keys()
+		alt_issue_info = [word for word in keys if "alt_album_info_" in word]
+		counter = 1
+		for string in alt_issue_info:
+			print "\t\t", self.album_dict[string], "\n"
+
 	def print_album_attributes(self):
 		"""Print album_dict attributes to the console in human readable form"""
 		t = "\t"
@@ -309,11 +325,12 @@ class Album():
 		date_loc = [word for word in keys if "date" in word]
 		personnel = [word for word in keys if "personnel" in word]
 		tracks = [word for word in keys if "tracks" in word]
-		if len(date_loc) != len(personnel) != len(tracks):
-			print "\nERROR: some session info or alternate issue ID info may be missing"
+		# if len(date_loc) != len(personnel) != len(tracks):
+		# 	print "\nERROR: some session info or alternate issue ID info may be missing"
 		session_counter = 1
 		print "\n"
 		print "Album Title:	", self.album_dict['album_title/id'], "\n"
+		self.print_alt_issue_info()
 		for item in date_loc:
 			print "Session " + str(session_counter) + ": ", self.album_dict[
 						'session_' + str(session_counter) + '_date/location']
@@ -332,17 +349,13 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[28] # first album markup
+string_markup = cannonball_catalog.string_markup[21] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
 	# cannonball 10
 		# orchestra and undefined orchestra in personnel string
-	# cannonball 10
-		# also has issue with using 'same session' in place of personnel string?
-	# cannonball 15, 17, 20, 21, 24, 28
-		# no track id in track listing table/s
 	# cannonball 16
 		# 'cannonball adderley as ronnie peters' WTF???
 		# apparentely cannonball went by a couple pseudonyms:
@@ -351,7 +364,9 @@ cannonball_album = Album(string_markup, catalog_soup)
 			# Ronnie Peters
 			# Jud Brotherly
 			# Blockbuster
-	# cannonball 18, 22
+	# cannonball 17
+		# deal with 'add some musician' in personnel strings
+	# cannonball 22
 		# 'add Nat Adderley' - deal with add in personnel strings
 	# cannonball 28
 		# gnarly personnel string with 'replaces' shorthand
@@ -362,6 +377,8 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # p = cannonball_album.extract_personnel_strings()
 
+# a = cannonball_album.assign_and_remove_alternate_issue_info(p)
+
 # r = cannonball_album.remove_markup_from_first_string(p)
 
 # e_s = cannonball_album.expand_same_personnel(r)
@@ -370,6 +387,9 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # for string in e_s:
 # 	print string
+
+# for string in a:
+# 	print "\n", string
 
 # print "\nPersonnel Strings: \n"
 # for string in cannonball_album.personnel_strings:
@@ -396,9 +416,11 @@ cannonball_album.print_album_attributes()
 	# another module to deal with record label catalog info?
 		# should record label catalog info be cross-checked against artist catalog info?
 		# identify the record lable links diffently to treat differently?
-
-	# do I need to store data about the final meta string that gives info about alternate
-	# issuances? 
+		# do I need to store data about the final meta string that gives info about alternate
+		# issuances? 
 		# ex: '** also issued on EmArcy MG 36091; Verve 314 543 828-2'
+		# may need to remove tags: <i></i>, <b></b>
+	# improve expand_replaces() to be able to deal with multi-person 'replace' shorthand
+		# ex: "Bill Barber (tuba) Phil Bodner (reeds) Philly Joe Jones (drums) replaces Phillips, Sanfino, Blakey"
 
 
