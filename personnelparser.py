@@ -386,34 +386,3 @@ def print_album_artists():
 			print d[inst[-1]]
 
 # print_album_artists()
-
-
-# personnel = AlbumPersonnel(artists)
-# a = [['Franz', 'Von', 'Klenck,', 'Helmut', 'Rheinhardt'], ['(alto', 'saxophone)']]
-# print personnel.contains_multiple_artists(a[0])
-# print personnel.split_multiple_artists(a[0])
-# for array in personnel.correct_multiple_artists():
-# 	print array
-# for array in personnel.correct_multiple_ranges():
-# 	print array
-# personnel.correct_multiple_word_instruments()
-# for array in personnel.final_artist_arrays:
-# 	print array
-
-# def c_m_a(artist_array):
-# 	correct_multiple_artists = []
-# 	if personnel.contains_multiple_artists(artist_array[0]):
-# 		for artist in personnel.split_multiple_artists(artist_array[0]):
-# 			temporary_array = []
-# 			temporary_array.append(artist)
-# 			temporary_array.append(artist_array[1])
-# 			correct_multiple_artists.append(temporary_array)
-# 	else:
-# 		correct_multiple_artists.append(artist_array)
-# 	return correct_multiple_artists
-
-# print c_m_a(a)
-
-# To Do:
-	# - set this module up to automatically take in a personnel string and return
-	#	 organized artist data in json format?

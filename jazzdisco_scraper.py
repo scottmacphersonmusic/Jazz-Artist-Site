@@ -349,13 +349,14 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[21] # first album markup
+string_markup = cannonball_catalog.string_markup[2] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
-	# cannonball 10
+	# cannonball 9, 10
 		# orchestra and undefined orchestra in personnel string
+		# maybe add 'unidentified orchestra' somewhere in personnel parser?
 	# cannonball 16
 		# 'cannonball adderley as ronnie peters' WTF???
 		# apparentely cannonball went by a couple pseudonyms:
@@ -364,14 +365,19 @@ cannonball_album = Album(string_markup, catalog_soup)
 			# Ronnie Peters
 			# Jud Brotherly
 			# Blockbuster
-	# cannonball 17
-		# deal with 'add some musician' in personnel strings
-	# cannonball 22
-		# 'add Nat Adderley' - deal with add in personnel strings
-	# cannonball 28
+		# after string has been split but before it has been assigned to dict:
+		#	make a dict key for 'pseudonym'
+	# cannonball 18, 22, 45
+		# deal with 'add -some musician-' in personnel strings
+		# error at: right_string = split_strings[1].split(") ", 1)[1]
+		#		in: expand_replaces()
+	# cannonball 10, 28
 		# gnarly personnel string with 'replaces' shorthand
 	# cannonball 29
-		# no idea... wtf
+		# something to do with the formatting on the first personnel string
+			# name is embedded in the <span> tag
+	# cannonball 42, 47
+		# doesn't display more than one alt_session_info string
 
 # cannonball_album.process_personnel_strings()
 
@@ -397,7 +403,6 @@ cannonball_album = Album(string_markup, catalog_soup)
 	
 cannonball_album.build_album_dict()
 
-
 cannonball_album.print_album_attributes()
 
 # Available Album Dictionary Attributes:
@@ -407,10 +412,12 @@ cannonball_album.print_album_attributes()
 
 	# ("meta", {"name":"City"}) to locate text in soup objects
 
-# make artist class
-	
-	# artist name
-	# albums they've been on
+# possible classes (/modules?!):
+	# make a distinct personnel class to deal with the strings once they are extracted from the site using the 
+	# 	personnelparser.py module
+	# 
+
+
 
 # To Do:
 	# another module to deal with record label catalog info?
@@ -422,5 +429,6 @@ cannonball_album.print_album_attributes()
 		# may need to remove tags: <i></i>, <b></b>
 	# improve expand_replaces() to be able to deal with multi-person 'replace' shorthand
 		# ex: "Bill Barber (tuba) Phil Bodner (reeds) Philly Joe Jones (drums) replaces Phillips, Sanfino, Blakey"
-
-
+	# will I need to update expand_same_personnel() to assume that 'same personnel' refers to 
+	#	the personnel immediately preceeding the reference or the first personnel?
+	# non-critical: rewrite print functions using dict-based string formatting
