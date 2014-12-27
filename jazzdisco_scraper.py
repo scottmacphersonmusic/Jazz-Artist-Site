@@ -1,6 +1,20 @@
-# build a webscraper for http://www.jazzdisco.org/
-# identify the record lable links diffently to treat differently?
-# there will be a more involved process for getting at the record lable info...
+"""
+A content webscraper for www.jazzdisco.org.
+
+BeautifulSoup and requests are used to produce a list of links to traverse and
+scrape artist recording catalog data.
+
+The ArtistCatalog class will recieve a url for an artist catalog page as input
+and construct an object that stores a BeautifulSoup object of the catalog's
+content in the attribute catalog_soup. Also will store a list of strings that
+each represent the markup for one album's content in the attribute
+string_markup.
+
+The Album class will recieve a string containing a given album's content
+markup and a BeautifulSoup object of the artist catalog as input (both from
+an instance of the ArtistCatalog class) and produce a dictionary
+containing all the album's data stored in the album_dict attribute.
+"""
 
 from bs4 import BeautifulSoup
 import requests
@@ -9,240 +23,412 @@ import personnelparser
 BASE_URL = "http://jazzdisco.org/"
 
 def make_soup(url):
+	"""
+	Recieve a url as input, access the url with requests, and return a
+	BeautifulSoup object.
+	"""
 	r = requests.get(url)
 	data = r.text
 	return BeautifulSoup(data)
 
 def get_category_links(url):
+	"""
+	Recieve a url as input, call make_soup() with that url, and return a list
+	of urls that each lead to an artist's recording catalog page.
+	"""
 	soup = make_soup(url)
 	table = soup.find("table")
-	category_links = [BASE_URL + a.get('href') + 'catalog/' for a in table.find_all('a')]
+	category_links = [BASE_URL + a.get('href') + 'catalog/' \
+					 for a in table.find_all('a')]
 	return category_links
 
-category_links = get_category_links(BASE_URL)
-test_page = category_links[0] # Cannonball catalog
 
 class ArtistCatalog():
 	
 	def __init__(self, artist_url):
-		self.artist_url = artist_url
-		self.soup = make_soup(self.artist_url)
-		self.content = self.soup.find(id="catalog-data")
-		self.unicode_list = []
-		self.make_unicode_list()
-
-	def make_unicode_list(self):
-		c = self.content.prettify()
-		s = c.split("<h3>")
-		for i in s[1:]:
-			if not i.startswith("<h2>"):
-				self.unicode_list.append("<h3>" + i)
-			else:
-				self.unicode_list.append(i)
-
+		"""
+		Recieve an artist catalog url as input and produce a BS object of
+		catalog data as well as a list of strings, each representing
+		one album's markup.
+		"""
+		self.soup = make_soup(artist_url)
+		self.catalog_soup = self.soup.find(id="catalog-data")
+		self.string_markup = str(self.catalog_soup).split("<h3>")
+		 
 	
 class Album():
 
-	def __init__(self, album_info, catalog_data):
-		self.album_info = album_info
-		self.catalog_data = catalog_data
-		self.p_strings = []
-		self.extract_personnel_strings()
-		self.album_dict = {}
-		self.create_personnel_dicts()
-		self.p_string_id = 0
-		self.sibling_limit = 0
-		self.set_sibling_limit()
-		self.find_p_string_id()
-		self.navigate_target_album()
+	def __init__(self, string_markup, catalog_soup):
+		"""
+		Recieve a string containing the album's content markup and a
+		BeautifulSoup object containing the entire artist catalog as input and
+		produce a dictionary containing all the album's data.
 
+		string_markup will be ONE of the items from the string_markup
+		attribute of an ArtistCatalog object. 
+
+		catalog_soup will be a BeautifulSoup object stored in the catalog_soup
+		attribute of an ArtistCatalog object.
+
+		personnel_string_id and sibling_limit are attributes used to determine
+		the starting point and bounds when navigating catalog_soup to locate
+		the same markup the personnel strings were scraped from in
+		string_markup.
+
+		A dictionary containing all of an album's data will be stored in the
+		album_dict attribute.
+		"""
+		self.string_markup = string_markup
+		self.catalog_soup = catalog_soup
+		self.personnel_strings = []
+		self.parent_tag = 0
+		self.sibling_limit = 0
+		self.album_dict = {}
+
+#	#	#	#	#	Process Personnel Strings 	#	#	#	#	#	#	#
 
 	def extract_personnel_strings(self):
-		# find first personnel string
-		start_1 = self.album_info.index("</h3>") + 5 # tag is 5 characters long
-		end_1 = self.album_info.index('<div class="date">')
-		p_string_1 = self.album_info[start_1:end_1]
-		self.p_strings.append(p_string_1)
-		# find second personnel string - will probly be more p_strings for other albums
-		copy = self.album_info
-		target_string = copy.split("</table>")[1]
-		end_2 = target_string.index("<div")
-		p_string_2 = target_string[:end_2]
-		self.p_strings.append(p_string_2)
+		"""
+		Parse string_markup to isolate and extract all personnel strings.
+		"""
+		target_string = string_markup.split("</h3>")[1]
+		split_strings = target_string.split("</table>")
+		personnel = [string_list.splitlines()[1] 
+								  for string_list in split_strings
+								  if len(string_list) > 1]
+		return personnel
+
+	def assign_and_remove_alternate_issue_info(self, personnel):
+		counter = 1
+		for string in personnel:
+			key = "alt_album_info_" + str(counter)
+			if "**" in string:
+				self.album_dict[key] = string
+				personnel.remove(string)
+			counter += 1
+		return personnel
+
+	def remove_markup_from_first_string(self, personnel):
+		first_string = personnel[0]
+		if '<span class="same">' \
+		and ': </span>same session' \
+		in first_string:
+			remove_left = first_string.lstrip('<span class="same">')
+			remove_right = remove_left.rstrip(': </span>same session')
+			personnel[0] = remove_right
+		elif '<span class="same">' \
+		and ': </span>same personnel' \
+		in first_string: 
+			remove_left = first_string.lstrip('<span class="same">')
+			remove_right = remove_left.rstrip(': </span>same personnel')
+			personnel[0] = remove_right
+		elif 'same' in personnel[0]:
+			print "ERROR: unrecognized version of 'same' shorthand"
+		return personnel
+
+	def expand_same_personnel(self, personnel):
+		"""
+		Substitue the original personnel for 'same personnel' shorthand and
+		return the resulting array.
+		"""
+		if len(personnel) > 1:
+			for string in personnel[1:]:
+				index = personnel.index(string)
+				if "same personnel" in string:
+					personnel[index] = personnel[0]
+		return personnel
+			
+	def expand_replaces(self, personnel):
+		"""
+		Substitute the original personnel with a new artist where identified
+		by 'replaces' shorthand and return the resulting array.
+		"""
+		if len(personnel) > 1:
+			for string in personnel[1:]:	
+				index = personnel.index(string)
+				first_string = personnel[0]
+				if string.count("replaces") > 1:
+					print "ERROR: more than one new artist?"
+				elif "replaces" in string:
+					replacement = string.split("replaces ")
+					new_artist = replacement[0].rstrip()
+					old_artist = replacement[1]
+					split_strings = first_string.split(old_artist)
+					left_string = split_strings[0].rsplit(")", 1)[0]
+					right_string = split_strings[1].split(") ", 1)[1]
+					personnel[index] = left_string + ") " \
+									   + new_artist + " " \
+									   + right_string
+		return personnel
+
+	def process_personnel_strings(self):
+		"""
+		Call the functions involved in extracting and ammending personnel
+		strings and assign the results to self.personnel_strings.
+		"""
+		original_strings = self.extract_personnel_strings()
+		assign_alt_issu_info = self.assign_and_remove_alternate_issue_info(original_strings)
+		remove_markup = self.remove_markup_from_first_string(assign_alt_issu_info)
+		expand_same_personnel = self.expand_same_personnel(remove_markup)
+		expand_replaces = self.expand_replaces(expand_same_personnel)
+		self.personnel_strings = expand_replaces
+
+#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#	#
 
 	def create_personnel_dicts(self):
-		# first personnel string
-		p_string_1 = (self.p_strings[0]).encode('ascii', 'ignore') # convert to ascii
-		p_1 = personnelparser.AlbumPersonnel(p_string_1)
-		p_1_Album_objects = []
-		for a in p_1.final_arrays:
-			p_1_Album_objects.append(personnelparser.AlbumArtist(a))
-		p_1_Album_dicts = [] # get just the artist_dict attrs
-		for a in p_1_Album_objects:
-			p_1_Album_dicts.append(a.artist_dict)
-		self.album_dict['personnel_1'] = p_1_Album_dicts
-		# second personnel string
-		p_string_2 = (self.p_strings[1]).encode('ascii', 'ignore')
-		p_2 = personnelparser.AlbumPersonnel(p_string_2)
-		p_2_Album_objects = []
-		for a in p_2.final_arrays:
-			p_2_Album_objects.append(personnelparser.AlbumArtist(a))
-		p_2_album_dicts = []
-		for a in p_2_Album_objects:
-			p_2_album_dicts.append(a.artist_dict)
-		self.album_dict['personnel_2'] = p_2_album_dicts
+		"""
+		Use the album_artists() function from the personnelparser module to
+		create a list of artist dictionaries for each personnel string.
+		Assign each list its own key in the self.album_dict attribute. 
+		"""
+		string_num = 1
+		for personnel_string in self.personnel_strings:
+			album_artist = personnelparser.album_artists(personnel_string)
+			key = "personnel_" + str(string_num)
+			self.album_dict[key] = album_artist 
+			string_num += 1
 
-	def find_p_string_id(self):
-		# helps to pair p_strings with the rest of album info
-		# id should be compared to <a name="p_string_id"> in <h3> tag
-		split_info = self.album_info.split('name="')
-		end = split_info[1].index('">')
-		# self.album_dict['p_string_id'] = split_info[1][:end]
-		self.p_string_id = split_info[1][:end]
-
+	def find_parent_tag(self):
+		"""
+		Use the string_markup attribute to extract the text assigned to the
+		'name' property embedded within the <a> tag. Assign a BS tag object of
+		the <h3> tag enclosing that to parent_tag to provide a starting place
+		for assigning album info.
+		"""
+		split_markup = self.string_markup.split('name="')
+		end = split_markup[1].index('">')
+		personnel_string_id = split_markup[1][:end]
+		start_tag = self.catalog_soup.find(
+					 "a", {"name":personnel_string_id})
+		self.parent_tag = start_tag.find_parent("h3")
+		
 	def set_sibling_limit(self):
-		div = self.album_info.count('<div class="date">')
-		table = self.album_info.count('<table')
-		if div != table:
+		"""
+		Scan string_markup to see how many div and table tags are present in
+		the markup.  The result should indicate how many sibling tags past the
+		<h3> parent tag to account for.  Assign the result to the
+		sibling_limit attribute.
+		"""
+		div_count = self.string_markup.count('<div class="date">')
+		table_count = self.string_markup.count('<table')
+		if div_count != table_count:
 			print "divs don't match tables"
 		else:
-			self.sibling_limit = div
+			self.sibling_limit = div_count
 
-	def clean_td(self, td):
-		table_data = []
-		for s in td:
-			if s == '\n':
-				continue
-			else:
-				t = s.encode('ascii', 'ignore')
-				table_data.append(t.rstrip("\n"))
-		return table_data
-
-	def navigate_target_album(self):
-		first_link = self.catalog_data.find("a", {"name":self.p_string_id})
-		parent = first_link.find_parent("h3")
-		self.album_dict['album_title/id'] = parent.string
-		# assign date/location to album_dict
-		divs = parent.find_next_siblings("div", limit=self.sibling_limit)
-		index = 1
-		for d in divs:
-			key = "session_" + str(index) + "_date/location"
-			self.album_dict[key] = d.string
-			index += 1
-		# assign track info to ablum_dict
-		tables = parent.find_next_siblings("table", limit=self.sibling_limit)
-		index = 1
-		for t in tables:
-			strings = t.stripped_strings
-			key = "session_" + str(index) + "_tracks"
-			tracks = {}
-			keys = []
-			values = []
-			count = 0
-			for s in strings:
-				if count % 2 == 0:
-					keys.append(s.encode('ascii', 'ignore'))
-					count += 1
-				else:
-					values.append(s.encode('ascii', 'ignore'))
-					count += 1
-			count = 0
-			for k in keys:
-				tracks[keys[count]] = values[count]
-				count += 1
-			self.album_dict[key] = tracks
-			index += 1
+	def assign_album_title_to_dict(self):
+		"""Assign album title to album_dict."""
+		parent_tag = self.parent_tag
+		self.album_dict['album_title/id'] = parent_tag.string
 		
-	##### printing functions #####
+	def assign_date_location_to_dict(self):
+		"""
+		Determine how many <div> tags containing recording location and date
+		info are in the markup for this album and assign each one to the 
+		album_dict attribute.
+		"""
+		div_tags = self.parent_tag.find_next_siblings(
+					"div", limit=self.sibling_limit)
+		session_count = 1
+		for div in div_tags:
+			key = "session_" + str(session_count) + "_date/location"
+			self.album_dict[key] = div.string
+			session_count += 1
+		
+	def assign_track_info_to_dict(self):
+		"""
+		Determine how many <table> tags containing track info are in the
+		markup for this album and create a dictionary for each one which is
+		then assigned to self.album_dict. The value of each dictionary will be
+		another dictionary containing ID and title info for each track.
+		"""
+		table_tags = self.parent_tag.find_next_siblings(
+					  "table", limit=self.sibling_limit)
+		session_count = 1
+		for table in table_tags:
+			session_key = "session_" + str(session_count) + "_tracks"
+			track_data = {}
+			table_data = [tr.find_all("td") for tr in table.find_all("tr")]
+			track_count = 1
+			for td_list in table_data:
+				track_key = "track_" + str(track_count)
+				if td_list[0].string is not None:  # first td is empty
+					track_dict = {"id": td_list[0].string,
+								  "title": td_list[1].string.rstrip("\n")}
+					track_data[track_key] = track_dict
+					track_count += 1
+				else:
+					track_data[track_key] = td_list[1].string.rstrip("\n")
+					track_count += 1
+			self.album_dict[session_key] = track_data
+			session_count += 1
+
+	def build_album_dict(self):
+		"""
+		Call all of the functions necessary to complete the album_dict
+		attribute.
+		"""
+		self.process_personnel_strings()
+		self.create_personnel_dicts()
+		self.find_parent_tag()
+		self.set_sibling_limit()
+		self.assign_album_title_to_dict()
+		self.assign_date_location_to_dict()
+		self.assign_track_info_to_dict()
+
+	##### Printing Functions #####
 	
 	def print_personnel(self, personnel_dict):
-		p = personnel_dict
-		t = "\t"
-		for d in p:
-			print t*2, d
-			# print d['name_1'], " ",
-			# if 'name_2' in d:
-			# 	print d['name_2'], " ",
-			# if 'name_3' in d:
-			# 	print d['name_3'], " ",
-			# print ", ", d['inst_1'],
-			# if 'inst_2' in d:
-			# 	print ", ", d['inst_2'],
-			# if 'inst_3' in d:
-			# 	print ", ", d['inst_3'],
-			# if 'inst_4' in d:
-			# 	print", ", d['inst_4'],
-			# if 'inst_5' in d:
-			# 	print ", ", d['inst_5'],
-			# if 'inst_6' in d:
-			# 	print ", ", d['inst_6'],
-			# if 'tracks' in d:
-			# 	print ", ", d['tracks']
-	# ['name_2', 'inst_2', 'tracks', 'name_1', 'inst_1'] 
+		for artist_dict in personnel_dict:
+			keys = artist_dict.keys()
+			name = [word for word in keys if "name" in word]
+			inst = [word for word in keys if "inst" in word]
+			tracks = [word for word in keys if "tracks" in word]
+			print "\t\t",
+			for word in name[::-1]:
+				print artist_dict[word] + " ",
+			if len(tracks) > 0:
+				print " --- ",
+				for word in inst[:(len(inst) - 1)]:
+					print artist_dict[word] + ", ",
+				print artist_dict[inst[-1]],
+				for word in tracks:
+					print " --- (tracks " + artist_dict[word] + ")"
+			else:
+				print " --- ",
+				for word in inst[:(len(inst) - 1)]:
+					print artist_dict[word] + ", ",
+				print artist_dict[inst[-1]]
 
-	def print_tracks(self, track_list):
-		t = "\t"
-		for d in track_list:
-			print t*2, d, ": ", track_list[d]
+
+	def print_tracks(self, track_dict):
+		track_keys = track_dict.keys()
+		for key in track_keys[::-1]:
+			if type(track_dict[key]) is dict:
+				track = track_dict[key]
+				print "\t\t" + track['id'] + " --- " + track['title']
+			else:
+				print "\t\t", track_dict[key]
+				
 	
-	def print_album_attrs(self):
+	def print_alt_issue_info(self):
+		keys = self.album_dict.keys()
+		alt_issue_info = [word for word in keys if "alt_album_info_" in word]
+		counter = 1
+		for string in alt_issue_info:
+			print "\t\t", self.album_dict[string], "\n"
+
+	def print_album_attributes(self):
+		"""Print album_dict attributes to the console in human readable form"""
 		t = "\t"
+		keys = self.album_dict.keys()
+		date_loc = [word for word in keys if "date" in word]
+		personnel = [word for word in keys if "personnel" in word]
+		tracks = [word for word in keys if "tracks" in word]
+		# if len(date_loc) != len(personnel) != len(tracks):
+		# 	print "\nERROR: some session info or alternate issue ID info may be missing"
+		session_counter = 1
 		print "\n"
 		print "Album Title:	", self.album_dict['album_title/id'], "\n"
-		print "Session 1: ", self.album_dict['session_1_date/location']
-		print t, "Personnel:"
-		print self.print_personnel(self.album_dict['personnel_1'])
-		print t, "Tracks: "
-		print self.print_tracks(self.album_dict['session_1_tracks']), "\n"
-		print "Session 2: ", self.album_dict['session_2_date/location']
-		print t, "Personnel: " 
-		print self.print_personnel(self.album_dict['personnel_2'])
-		print t, "Tracks: " 
-		print self.print_tracks(self.album_dict['session_2_tracks']), "\n"
+		self.print_alt_issue_info()
+		for item in date_loc:
+			print "Session " + str(session_counter) + ": ", self.album_dict[
+						'session_' + str(session_counter) + '_date/location']
+			print "\n", t, "Personnel:"
+			self.print_personnel(self.album_dict['personnel_'
+				+ str(session_counter)]), "\n"
+			print "\n", t, "Tracks:"
+			self.print_tracks(self.album_dict['session_' + str(session_counter)
+				+ '_tracks']), "\n"
+			print "\n"
+			session_counter += 1
+	
 
+# Temporary Instantiation Tests:
+category_links = get_category_links(BASE_URL)
+test_page = category_links[0] # Cannonball catalog
+cannonball_catalog = ArtistCatalog(test_page)
+
+string_markup = cannonball_catalog.string_markup[2] # first album markup
+catalog_soup = cannonball_catalog.catalog_soup
+cannonball_album = Album(string_markup, catalog_soup)
+
+# Problem Albums:
+	# cannonball 9, 10
+		# orchestra and undefined orchestra in personnel string
+		# maybe add 'unidentified orchestra' somewhere in personnel parser?
+	# cannonball 16
+		# 'cannonball adderley as ronnie peters' WTF???
+		# apparentely cannonball went by a couple pseudonyms:
+			# Spider Johnson
+			# Buckshot La Funque
+			# Ronnie Peters
+			# Jud Brotherly
+			# Blockbuster
+		# after string has been split but before it has been assigned to dict:
+		#	make a dict key for 'pseudonym'
+	# cannonball 18, 22, 45
+		# deal with 'add -some musician-' in personnel strings
+		# error at: right_string = split_strings[1].split(") ", 1)[1]
+		#		in: expand_replaces()
+	# cannonball 10, 28
+		# gnarly personnel string with 'replaces' shorthand
+	# cannonball 29
+		# something to do with the formatting on the first personnel string
+			# name is embedded in the <span> tag
+	# cannonball 42, 47
+		# doesn't display more than one alt_session_info string
+
+# cannonball_album.process_personnel_strings()
+
+# p = cannonball_album.extract_personnel_strings()
+
+# a = cannonball_album.assign_and_remove_alternate_issue_info(p)
+
+# r = cannonball_album.remove_markup_from_first_string(p)
+
+# e_s = cannonball_album.expand_same_personnel(r)
+
+# e_r = cannonball_album.expand_replaces(e_s)
+
+# for string in e_s:
+# 	print string
+
+# for string in a:
+# 	print "\n", string
+
+# print "\nPersonnel Strings: \n"
+# for string in cannonball_album.personnel_strings:
+# 	print string, "\n"
+	
+cannonball_album.build_album_dict()
+
+cannonball_album.print_album_attributes()
+
+# Available Album Dictionary Attributes:
 # ['personnel_2', 'personnel_1', 'session_1_date/location', 
-#  'album_title/id', 'session_1_tracks', 'session_2_tracks', 
-#  'session_2_date/location']
+# 'album_title/id', 'session_1_tracks', 'session_2_tracks', 
+# 'session_2_date/location']
 
-	# ("meta", {"name":"City"})
+	# ("meta", {"name":"City"}) to locate text in soup objects
 
-	# self.content.find("h3").find_next_sibling() <- this works	
-
-x = ArtistCatalog(test_page)
-a_i = x.unicode_list[0] # first item (album markup) in unicode list
-c_d = x.content
-y = Album(a_i, c_d)
-print y.print_album_attrs()
+# possible classes (/modules?!):
+	# make a distinct personnel class to deal with the strings once they are extracted from the site using the 
+	# 	personnelparser.py module
+	# 
 
 
-		
-# content: <div id="catalog-data">
-# ( year of recording/age of artist: <h2> )
-# personnel string: indicated by newline character in dom - "data"
-# recording location/date: <div class="date">
-# track titles/catalog num: <table>
-	# additional personnel: text data following <table>
-	# additional tracks: <table>
-	# additional loc/date: <div class="date">
 
-# make album class 
-# *(some record info uses "replace" format with personnel for multiple sessions)
-# may wish to address age of artist info in catalog tables
-	
-	# album title, 				ex: Kenny Clarke - Bohemia After Dark
-	# album id, 					ex: Savoy MG 12017
-	# recording date/location, 		ex: NYC, June 28, 1955
-		# multiple sessions?
-	# personnel
-		# see 'personnel-parser.py'
-	# tracks
-		# track names
-		# track id's
-	# additional personnel
-	# additional tracks
-
-
-# make artist class
-	
-	# artist name
-	# albums they've been on
+# To Do:
+	# another module to deal with record label catalog info?
+		# should record label catalog info be cross-checked against artist catalog info?
+		# identify the record lable links diffently to treat differently?
+		# do I need to store data about the final meta string that gives info about alternate
+		# issuances? 
+		# ex: '** also issued on EmArcy MG 36091; Verve 314 543 828-2'
+		# may need to remove tags: <i></i>, <b></b>
+	# improve expand_replaces() to be able to deal with multi-person 'replace' shorthand
+		# ex: "Bill Barber (tuba) Phil Bodner (reeds) Philly Joe Jones (drums) replaces Phillips, Sanfino, Blakey"
+	# will I need to update expand_same_personnel() to assume that 'same personnel' refers to 
+	#	the personnel immediately preceeding the reference or the first personnel?
+	# non-critical: rewrite print functions using dict-based string formatting
