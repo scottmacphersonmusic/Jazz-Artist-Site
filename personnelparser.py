@@ -460,4 +460,4 @@ def print_album_artists():
 #       print d, "\n"
 
 
-# print_album_artists()
+print_album_artists()
