@@ -517,8 +517,6 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # o_p = cannonball_album.original_personnel_to_dict(r)
 
-# o_p = cannonball_album.original_personnel_to_dict(r)
-
 # s_d = cannonball_album.standard_personnel_to_dict(o_p)
 
 # e_s = cannonball_album.expand_same_personnel(s_d)
