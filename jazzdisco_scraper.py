@@ -99,11 +99,24 @@ class Album():
                              if len(string_list) > 1]
                 return personnel
 
+        def clean_extra_session_info(self, info):
+                """Remove markup from extra session info strings"""
+                if '<i>' in info:
+                        split_i = info.split('<i>')
+                        info = split_i[0] + split_i[1]
+                if '</i>' in info:
+                        split_ic = info.split('</i>')
+                        info = split_ic[0] + split_ic[1]
+                if '<br/>' in info:
+                        info = info.rstrip('<br/>')
+                return info
+
         def assign_and_remove_alternate_issue_info(self, personnel):
                 album_info = []
                 for string in personnel:
                         if "**" in string:
-                                album_info.append(string)
+                                clean_string = self.clean_extra_session_info(string)
+                                album_info.append(clean_string)
                                 personnel.remove(string)
                 index = 1
                 for string in album_info:
@@ -284,7 +297,7 @@ class Album():
                         extra_session_info = markup.split("<br/>")[1]
                         index = len([key for key in self.album_dict.keys() if "alt_album_info_" in key]) + 1
                         key = "alt_album_info_" + str(index)
-                        self.album_dict[key] = extra_session_info
+                        self.album_dict[key] = self.clean_extra_session_info(extra_session_info)
 
         def set_sibling_limit(self):
                 """
@@ -444,15 +457,11 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[42] # first album markup
+string_markup = cannonball_catalog.string_markup[87] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
-        # cannonball 9, 23, 42, 54
-                # <i> tags in the alternate issue info
-                #</br> tag at the end of 42
-                # really its just any album that has alternate issue info
         # cannonball 16, 24
                 # 'cannonball adderley as ronnie peters' WTF???
                 # apparentely cannonball went by a couple pseudonyms:
@@ -463,8 +472,6 @@ cannonball_album = Album(string_markup, catalog_soup)
                         # Blockbuster
                 # after string has been split but before it has been assigned to dict:
                 #       make a dict key for 'pseudonym'
-        # cannonball 38, 42, 47, 49, 50, 67, 75, 77, 79, 87, 105
-                # doesn't display more than one alt_session_info string
         # cannonball 121
                 # "unidentified brass, reeds and vocals," in personnel string.  MOTHERFUCKER!!!
         # cannonball 144
