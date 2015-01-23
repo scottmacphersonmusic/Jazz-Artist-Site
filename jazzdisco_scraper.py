@@ -12,13 +12,15 @@ string_markup.
 
 The Album class will recieve a string containing a given album's content
 markup and a BeautifulSoup object of the artist catalog as input (both from
-an instance of the ArtistCatalog class) and produce a dictionary
+a single instance of the ArtistCatalog class) and produce a dictionary
 containing all the album's data stored in the album_dict attribute.
 """
 
 from bs4 import BeautifulSoup
 import requests
 import personnelparser
+import replaces
+import copy
 
 BASE_URL = "http://jazzdisco.org/"
 
@@ -70,7 +72,7 @@ class Album():
                 catalog_soup will be a BeautifulSoup object stored in the catalog_soup
                 attribute of an ArtistCatalog object.
 
-                personnel_string_id and sibling_limit are attributes used to determine
+                parent_tag and sibling_limit are attributes used to determine
                 the starting point and bounds when navigating catalog_soup to locate
                 the same markup the personnel strings were scraped from in
                 string_markup.
@@ -80,7 +82,6 @@ class Album():
                 """
                 self.string_markup = string_markup
                 self.catalog_soup = catalog_soup
-                self.personnel_strings = []
                 self.parent_tag = 0
                 self.sibling_limit = 0
                 self.album_dict = {}
@@ -94,18 +95,21 @@ class Album():
                 target_string = string_markup.split("</h3>")[1]
                 split_strings = target_string.split("</table>")
                 personnel = [string_list.splitlines()[1]
-                                                                  for string_list in split_strings
-                                                                  if len(string_list) > 1]
+                             for string_list in split_strings
+                             if len(string_list) > 1]
                 return personnel
 
         def assign_and_remove_alternate_issue_info(self, personnel):
-                counter = 1
+                album_info = []
                 for string in personnel:
-                        key = "alt_album_info_" + str(counter)
                         if "**" in string:
-                                self.album_dict[key] = string
+                                album_info.append(string)
                                 personnel.remove(string)
-                        counter += 1
+                index = 1
+                for string in album_info:
+                        key = "alt_album_info_" + str(index)
+                        self.album_dict[key] = string
+                        index += 1
                 return personnel
 
         def remove_markup_from_first_string(self, personnel):
@@ -122,8 +126,47 @@ class Album():
                         remove_left = first_string.lstrip('<span class="same">')
                         remove_right = remove_left.rstrip(': </span>same personnel')
                         personnel[0] = remove_right
-                elif 'same' in personnel[0]:
+                # use replaces module
+                elif '<span class="same">' and 'replaces' in first_string:
+                        split = first_string.split(': </span>')
+                        original = split[0].lstrip('<span class="same">')
+                        original_dict = personnelparser.album_artists(original)
+                        rep_instance = replaces.ReplacePersonnel(original_dict, split[1])
+                        personnel[0] = rep_instance.build_replacement_personnel()
+                elif '<span class="same">' and 'add' in first_string:
+                        split = first_string.split(': </span>')
+                        original = split[0].lstrip('<span class="same">')
+                        original_dict = personnelparser.album_artists(original)
+                        add =  personnelparser.album_artists(split[1].lstrip('add '))
+                        for d in add:
+                                original_dict.append(d)
+                        personnel[0] = original_dict
+                elif 'same' in first_string:
                         print "ERROR: unrecognized version of 'same' shorthand"
+                return personnel
+
+        def original_personnel_to_dict(self, personnel):
+                """
+                Use the personnelparser module to convert the first/original personnel
+                string into an artist dictionary.
+                """
+                if type(personnel[0]) == str:
+                        personnel[0] = personnelparser.album_artists(personnel[0])
+                return personnel
+
+        def standard_personnel_to_dict(self, personnel):
+                """
+                Use the personnelparser module to convert any standard personnel
+                strings (i.e. they don't have trigger words like 'add', 'same'
+                or 'replaces') into dicts.
+                """
+                for p in personnel[1:]:
+                        i = personnel.index(p)
+                        if 'add' not in p \
+                        and 'same' not in p \
+                        and 'replaces' not in p \
+                        and 'omit' not in p:
+                                personnel[i] = personnelparser.album_artists(p)
                 return personnel
 
         def expand_same_personnel(self, personnel):
@@ -132,61 +175,89 @@ class Album():
                 return the resulting array.
                 """
                 if len(personnel) > 1:
-                        for string in personnel[1:]:
-                                index = personnel.index(string)
-                                if "same personnel" in string:
-                                        personnel[index] = personnel[0]
+                        for p in personnel[1:]:
+                                index = personnel.index(p)
+                                if "same personnel" in p:
+                                        personnel[index] = personnel[index - 1]
+                return personnel
+
+        def expand_add(self, personnel):
+                for p in personnel[1:]:
+                        i = personnel.index(p)
+                        if type(p) == str and 'add' in p:
+                                clean_string = p.lstrip("add ")
+                                artist_dicts = personnelparser.album_artists(clean_string)
+                                base_personnel = copy.deepcopy(personnel[i - 1])
+                                #add_personnel = map(lambda x: base_personnel.append(x), artist_dicts)
+                                add_personnel = []
+                                for d in base_personnel:
+                                        add_personnel.append(d)
+                                for d in artist_dicts:
+                                        add_personnel.append(d)
+                                personnel[i] = add_personnel
                 return personnel
 
         def expand_replaces(self, personnel):
                 """
-                Substitute the original personnel with a new artist where identified
-                by 'replaces' shorthand and return the resulting array.
+                If necessary, substitute the indicated artist/s into the original
+                personnel dict and return an array of dicts. Otherwise return the
+                original personnel.
                 """
-                if len(personnel) > 1:
-                        for string in personnel[1:]:
-                                index = personnel.index(string)
-                                first_string = personnel[0]
-                                if string.count("replaces") > 1:
-                                        print "ERROR: more than one new artist?"
-                                elif "replaces" in string:
-                                        replacement = string.split("replaces ")
-                                        new_artist = replacement[0].rstrip()
-                                        old_artist = replacement[1]
-                                        split_strings = first_string.split(old_artist)
-                                        left_string = split_strings[0].rsplit(")", 1)[0]
-                                        right_string = split_strings[1].split(") ", 1)[1]
-                                        personnel[index] = left_string + ") " \
-                                                                           + new_artist + " " \
-                                                                           + right_string
+                for p in personnel[1:]:
+                        if "replaces" in p:
+                                i = personnel.index(p)
+                                original_personnel = copy.deepcopy(personnel[i - 1])
+                                rep_instance = replaces.ReplacePersonnel(original_personnel, p)
+                                build_personnel = rep_instance.build_replacement_personnel()
+                                rep_personnel = [item for item in build_personnel]
+                                personnel[i] = rep_personnel
+                return personnel
+
+        def omit_artists(self, personnel):
+                for item in personnel:
+                        if 'omit' in item:
+                                target = item.lstrip('omit ')
+                                index = personnel.index(item)
+                                original = copy.deepcopy(personnel[index - 1])
+                                for d in original:
+                                        if target in d.values():
+                                                original.remove(d)
+                                personnel[index] = original
+                return personnel
+
+        def remaining_strings_to_dict(self, personnel):
+                for item in personnel:
+                        if type(item) == str:
+                                index = personnel.index(item)
+                                personnel[index] = personnelparser.album_artists(personnel[index])
                 return personnel
 
         def process_personnel_strings(self):
                 """
                 Call the functions involved in extracting and ammending personnel
-                strings and assign the results to self.personnel_strings.
+                strings and assign the resulting lists of artist dicts as values to
+                self.album_dict.
                 """
                 original_strings = self.extract_personnel_strings()
-                assign_alt_issu_info = self.assign_and_remove_alternate_issue_info(original_strings)
-                remove_markup = self.remove_markup_from_first_string(assign_alt_issu_info)
-                expand_same_personnel = self.expand_same_personnel(remove_markup)
-                expand_replaces = self.expand_replaces(expand_same_personnel)
-                self.personnel_strings = expand_replaces
+                assign_alt_issue_info = self.assign_and_remove_alternate_issue_info(
+                                                                                original_strings)
+                remove_markup = self.remove_markup_from_first_string(
+                                                                                assign_alt_issue_info)
+                original_to_dict = self.original_personnel_to_dict(remove_markup)
+                standard_personnel = self.standard_personnel_to_dict(original_to_dict)
+                expand_same_personnel = self.expand_same_personnel(standard_personnel)
+                expand_add = self.expand_add(expand_same_personnel)
+                expand_replaces = self.expand_replaces(expand_add)
+                omit_artists = self.omit_artists(expand_replaces)
+                convert_strings = self.remaining_strings_to_dict(omit_artists)
+                #       #       #       #       #       #       #       #
+                key_counter = 1
+                for l in convert_strings:
+                        key = "personnel_" + str(key_counter)
+                        self.album_dict[key] = l
+                        key_counter += 1
 
 #       #       #       #       #       #       #       #       #       #       #       #       #       #       #       #       #       #       #       #
-
-        def create_personnel_dicts(self):
-                """
-                Use the album_artists() function from the personnelparser module to
-                create a list of artist dictionaries for each personnel string.
-                Assign each list its own key in the self.album_dict attribute.
-                """
-                string_num = 1
-                for personnel_string in self.personnel_strings:
-                        album_artist = personnelparser.album_artists(personnel_string)
-                        key = "personnel_" + str(string_num)
-                        self.album_dict[key] = album_artist
-                        string_num += 1
 
         def find_parent_tag(self):
                 """
@@ -201,6 +272,19 @@ class Album():
                 start_tag = self.catalog_soup.find(
                                          "a", {"name":personnel_string_id})
                 self.parent_tag = start_tag.find_parent("h3")
+
+        def find_extra_session_info(self):
+                """
+                Look for a <br> tag in the markup to indicate whether there is
+                extra session info or not. If so, parse and assign the info to
+                self.album_dict.
+                """
+                markup =  self.string_markup
+                if "<br/>" in markup:
+                        extra_session_info = markup.split("<br/>")[1]
+                        index = len([key for key in self.album_dict.keys() if "alt_album_info_" in key]) + 1
+                        key = "alt_album_info_" + str(index)
+                        self.album_dict[key] = extra_session_info
 
         def set_sibling_limit(self):
                 """
@@ -269,8 +353,8 @@ class Album():
                 attribute.
                 """
                 self.process_personnel_strings()
-                self.create_personnel_dicts()
                 self.find_parent_tag()
+                self.find_extra_session_info()
                 self.set_sibling_limit()
                 self.assign_album_title_to_dict()
                 self.assign_date_location_to_dict()
@@ -279,7 +363,15 @@ class Album():
         ##### Printing Functions #####
 
         def print_personnel(self, personnel_dict):
-                for artist_dict in personnel_dict:
+                personnel = copy.deepcopy(personnel_dict)
+                orch = []
+                for artist_dict in personnel:
+                        for key in artist_dict.keys():
+                                if 'orch' in key:
+                                        orch.append(artist_dict)
+                                        personnel.remove(artist_dict)
+                                        break
+                for artist_dict in personnel:
                         keys = artist_dict.keys()
                         name = [word for word in keys if "name" in word]
                         inst = [word for word in keys if "inst" in word]
@@ -299,7 +391,13 @@ class Album():
                                 for word in inst[:(len(inst) - 1)]:
                                         print artist_dict[word] + ", ",
                                 print artist_dict[inst[-1]]
-
+                # print orchestra
+                if len(orch) > 0:
+                        print "\t\tOrchestra --- ",
+                        for d in orch:
+                                o_keys = d.keys()
+                                for key in o_keys:
+                                        print d[key], " ",
 
         def print_tracks(self, track_dict):
                 track_keys = track_dict.keys()
@@ -310,13 +408,12 @@ class Album():
                         else:
                                 print "\t\t", track_dict[key]
 
-
         def print_alt_issue_info(self):
                 keys = self.album_dict.keys()
                 alt_issue_info = [word for word in keys if "alt_album_info_" in word]
-                counter = 1
-                for string in alt_issue_info:
-                        print "\t\t", self.album_dict[string], "\n"
+                for key in alt_issue_info:
+                        print self.album_dict[key]
+                print "\n"
 
         def print_album_attributes(self):
                 """Print album_dict attributes to the console in human readable form"""
@@ -325,8 +422,6 @@ class Album():
                 date_loc = [word for word in keys if "date" in word]
                 personnel = [word for word in keys if "personnel" in word]
                 tracks = [word for word in keys if "tracks" in word]
-                # if len(date_loc) != len(personnel) != len(tracks):
-                #       print "\nERROR: some session info or alternate issue ID info may be missing"
                 session_counter = 1
                 print "\n"
                 print "Album Title:     ", self.album_dict['album_title/id'], "\n"
@@ -349,15 +444,16 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[10] # first album markup
+string_markup = cannonball_catalog.string_markup[42] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
-        # cannonball 9, 10
-                # orchestra and undefined orchestra in personnel string
-                # maybe add 'unidentified orchestra' somewhere in personnel parser?
-        # cannonball 16
+        # cannonball 9, 23, 42, 54
+                # <i> tags in the alternate issue info
+                #</br> tag at the end of 42
+                # really its just any album that has alternate issue info
+        # cannonball 16, 24
                 # 'cannonball adderley as ronnie peters' WTF???
                 # apparentely cannonball went by a couple pseudonyms:
                         # Spider Johnson
@@ -367,19 +463,16 @@ cannonball_album = Album(string_markup, catalog_soup)
                         # Blockbuster
                 # after string has been split but before it has been assigned to dict:
                 #       make a dict key for 'pseudonym'
-        # cannonball 18, 22, 45
-                # deal with 'add -some musician-' in personnel strings
-                # error at: right_string = split_strings[1].split(") ", 1)[1]
-                #               in: expand_replaces()
-        # cannonball 10, 28
-                # gnarly personnel string with 'replaces' shorthand
-        # cannonball 29
-                # something to do with the formatting on the first personnel string
-                        # name is embedded in the <span> tag
-        # cannonball 42, 47
+        # cannonball 38, 42, 47, 49, 50, 67, 75, 77, 79, 87, 105
                 # doesn't display more than one alt_session_info string
+        # cannonball 121
+                # "unidentified brass, reeds and vocals," in personnel string.  MOTHERFUCKER!!!
+        # cannonball 144
+                # "unidentified strings and chorus" in personnel string - maybe this, the brass one above and
+                #      the orchestra ones could focus on 'unidentified' rather than 'orchestra', 'brass'...
 
-# cannonball_album.process_personnel_strings()
+
+#cannonball_album.process_personnel_strings()
 
 # p = cannonball_album.extract_personnel_strings()
 
@@ -387,48 +480,50 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # r = cannonball_album.remove_markup_from_first_string(p)
 
-# e_s = cannonball_album.expand_same_personnel(r)
+# o_p = cannonball_album.original_personnel_to_dict(r)
+
+# s_d = cannonball_album.standard_personnel_to_dict(o_p)
+
+# e_s = cannonball_album.expand_same_personnel(s_d)
+
+# e_a = cannonball_album.expand_add(e_s)
 
 # e_r = cannonball_album.expand_replaces(e_s)
 
-# for string in e_s:
-#       print string
+# o_a = cannonball_album.omit_artists(e_r)
 
-# for string in a:
-#       print "\n", string
+# c_s = cannonball_album.remaining_strings_to_dict(e_r)
 
-# print "\nPersonnel Strings: \n"
-# for string in cannonball_album.personnel_strings:
-#       print string, "\n"
+# for item in o_a:
+#         print item, "\n"
+
+
+# for thing in e_r:
+#         print type(thing)
+#         for item in thing:
+#                 print item
+#         print "\n"
+
+
+#for thing in e_a:
+#        print "\n", thing
+
+#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
 cannonball_album.build_album_dict()
 
 cannonball_album.print_album_attributes()
 
-# Available Album Dictionary Attributes:
-# ['personnel_2', 'personnel_1', 'session_1_date/location',
-# 'album_title/id', 'session_1_tracks', 'session_2_tracks',
-# 'session_2_date/location']
+#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
         # ("meta", {"name":"City"}) to locate text in soup objects
 
 # possible classes (/modules?!):
-        # make a distinct personnel class to deal with the strings once they are extracted from the site using the
-        #       personnelparser.py module
-        #
-
+        # make a distinct personnel class to deal with the strings once they are extracted from the
+        #       site using the personnelparser.py module
 
 
 # To Do:
-        # another module to deal with record label catalog info?
-                # should record label catalog info be cross-checked against artist catalog info?
-                # identify the record lable links diffently to treat differently?
-                # do I need to store data about the final meta string that gives info about alternate
-                # issuances?
-                # ex: '** also issued on EmArcy MG 36091; Verve 314 543 828-2'
-                # may need to remove tags: <i></i>, <b></b>
-        # improve expand_replaces() to be able to deal with multi-person 'replace' shorthand
-                # ex: "Bill Barber (tuba) Phil Bodner (reeds) Philly Joe Jones (drums) replaces Phillips, Sanfino, Blakey"
-        # will I need to update expand_same_personnel() to assume that 'same personnel' refers to
-        #       the personnel immediately preceeding the reference or the first personnel?
+        #  remove tags: <i></i>, <b></b>
+        # some extra album info can be located after the rest of the album info behind a <br> tag...
         # non-critical: rewrite print functions using dict-based string formatting
