@@ -457,13 +457,41 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[87] # first album markup
+string_markup = cannonball_catalog.string_markup[144] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
+    # Cannonball albums with 'unidentified', nonstandard artists
+    # note: this endeavor has been relocated to the module named oddpersonnel.py
+        # cb 9 'Julian Cannonball Adderley And Strings'
+                # 'unidentified orchestra'
+        # cb 10 'Dinah Washington In The Land Of High-Fi'
+                # 'unidentified orchestra,'
+                # 'unidentified orchestra, including strings replaces unidentified orchestra'
+        # cb 11 'Dinah Washington - Cat On A Hot Tin Roof'
+                # 'unidentified orchestra and vocal group,'
+        # cb 21 'Machito And His Orchestra - Kenya-Afro Cuban Jazz'
+                # 'Machito And His Orchestra'
+        # cb ~50? 'Various Artists - The Nutty Squirrels'
+                # 'unidentified big band, including strings'
+        # cb 110 'Domination'
+                # 'Oliver Nelson Orchestra'
+        # cb 112 'Great Love Themes'
+                # 'unidentified strings and vocals'
+        # cb 121 'Cannonball Adderley - Accent On Africa'
+                # "unidentified brass, reeds and vocals,"
+        # cb 125  'The Cannonball Adderley Quintet and Orchestra'
+                # 'unidentified orchestra' (+ 2 conductors)
+        # cb 144 'Cannonball Adderley - Big Man'
+                # "unidentified strings and chorus, probably David Axelrod (arranger, conductor)'
+        # strategy:
+                        # the orchestra ones could focus on 'unidentified' rather than 'orchestra', 'brass'...
+                        # look for commas, look for word which start with Caps
+                        # would it be totally ridiculous to make a dict (or some data structure) with the common weird strings
+
         # cannonball 16, 24
-                # 'cannonball adderley as ronnie peters' WTF???
+                # 'cannonball adderley as ronnie peters'
                 # apparentely cannonball went by a couple pseudonyms:
                         # Spider Johnson
                         # Buckshot La Funque
@@ -472,11 +500,6 @@ cannonball_album = Album(string_markup, catalog_soup)
                         # Blockbuster
                 # after string has been split but before it has been assigned to dict:
                 #       make a dict key for 'pseudonym'
-        # cannonball 121
-                # "unidentified brass, reeds and vocals," in personnel string.  MOTHERFUCKER!!!
-        # cannonball 144
-                # "unidentified strings and chorus" in personnel string - maybe this, the brass one above and
-                #      the orchestra ones could focus on 'unidentified' rather than 'orchestra', 'brass'...
 
 
 #cannonball_album.process_personnel_strings()
