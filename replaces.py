@@ -52,15 +52,15 @@ class ReplacePersonnel():
                 for sub in subs:
                         if ')' in sub:
                                 sub_dicts.append(personnelparser.album_artists(sub)[0])
-                        elif type(sub) == str:    # really just looking for orchestras here
+                        elif type(sub) == str:    # really just looking for 'unidentified's here
                                 split_string = sub.split()
                                 counter = 1
-                                orch_dict = {}
+                                odd_dict = {}
                                 for word in split_string:
-                                        key = "orch_" + str(counter)
-                                        orch_dict[key] = word
+                                        key = "odd_" + str(counter)
+                                        odd_dict[key] = word
                                         counter += 1
-                                sub_dicts.append(orch_dict)
+                                sub_dicts.append(odd_dict)
                         else:
                                 print "Something peculiar is going on here..."
                 #sub_dicts = [personnelparser.album_artists(sub)[0] for sub in subs]
