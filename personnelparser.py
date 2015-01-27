@@ -78,7 +78,7 @@ class AlbumPersonnel():
                 """
                 odd, standard = oddpersonnel.odd_or_standard(initial_artists)
                 if odd == None:
-                        return initial_artist_arrays
+                        return initial_artists
                 else:
                         isolate_odd, isolate_standard = oddpersonnel.isolate_odd_personnel(odd)
                         self.odd = oddpersonnel.odd_personnel_to_dict(isolate_odd)

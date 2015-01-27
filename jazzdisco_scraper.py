@@ -377,11 +377,11 @@ class Album():
 
         def print_personnel(self, personnel_dict):
                 personnel = copy.deepcopy(personnel_dict)
-                orch = []
+                odd = None
                 for artist_dict in personnel:
                         for key in artist_dict.keys():
-                                if 'orch' in key:
-                                        orch.append(artist_dict)
+                                if 'odd' in key:
+                                        odd = artist_dict
                                         personnel.remove(artist_dict)
                                         break
                 for artist_dict in personnel:
@@ -404,13 +404,15 @@ class Album():
                                 for word in inst[:(len(inst) - 1)]:
                                         print artist_dict[word] + ", ",
                                 print artist_dict[inst[-1]]
-                # print orchestra
-                if len(orch) > 0:
-                        print "\t\tOrchestra --- ",
-                        for d in orch:
-                                o_keys = d.keys()
-                                for key in o_keys:
-                                        print d[key], " ",
+                # print odd personnel
+                if odd != None:
+                        keys = [word for word in odd.keys()]
+                        counter = 1
+                        print "\t\t",
+                        while counter <= len(keys):
+                                key = "odd_" + str(counter)
+                                print odd[key],
+                                counter += 1
 
         def print_tracks(self, track_dict):
                 track_keys = track_dict.keys()
@@ -457,7 +459,7 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[9] # first album markup
+string_markup = cannonball_catalog.string_markup[1] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
