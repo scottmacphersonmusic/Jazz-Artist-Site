@@ -11,7 +11,7 @@ key:value pairings for each name (first, middle, last, nicknames), instrument,
 and which tracks they performed on if specified. Said dict is stored in
 self.artist_dict.
 """
-
+import oddpersonnel
 import re
 
 _digits = re.compile('\d')
@@ -27,10 +27,18 @@ def contains_digits(word):
 # artists = "Chet Baker (trumpet) Ted Ottison (trumpet -5,6) Sonny Criss (alto saxophone -1,2,6) Jack Montrose (tenor saxophone -1/3,6) Les Thompson (harmonica -7) Al Haig (piano) Dave Bryant (bass) Larry Bunker (drums)"
 # artists = "Chet Baker, Pete Candoli (trumpet) Bob Enevoldsen (valve trombone) John Graas (French horn) Ray Siegel (tuba) Bud Shank (alto saxophone) Don Davidson (baritone saxophone) Gerry Mulligan (baritone saxophone, piano) Joe Mondragon (bass) Chico Hamilton (drums)"
 # artists = "Chet Baker (trumpet) with Siegfried Achhammer, Klaus Mitchele, Rolf Schneebiegl, Hans Wilfert (trumpet) Werner Betz, Otto Bredl, Helmut Hauck, Heinz Hermansdorfer (trombone) Franz Von Klenck, Helmut Rheinhardt (alto saxophone) Bubi Aderhold, Paul Martin (tenor saxophone) Johnny Feigl (baritone saxophone) Werner Drexler (piano) Werner Schulze (bass) Silo Deutsch (drums) Kurt Edelhagen (leader)"
-artists = "Cannonball Adderley (alto saxophone) unknown (harmonica -1) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra and vocal group, Hal Mooney (arranger, conductor)"
 # artists = "Cannonball Adderley (alto saxophone) unidentified orchestra, Richard Hayman (director)"
-# artists = "Cannonball Adderley (alto saxophone) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra, Hal Mooney (arranger, conductor)"
+
+# 'unidentified' personnel strings:
 # artists = "Nat Adderley (cornet) Cannonball Adderley (alto saxophone) Oliver Nelson Orchestra, Oliver Nelson (arranger, conductor)"
+# artists = "Cannonball Adderley (alto saxophone) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra, Hal Mooney (arranger, conductor)"
+# artists = "Cannonball Adderley (alto saxophone) unknown (harmonica -1) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra and vocal group, Hal Mooney (arranger, conductor)"
+artists = "Don Fagerquist (trumpet) Buddy DeFranco (clarinet) Sonny Clark (piano) Howard Roberts (guitar) unidentified brass, reeds, rhythm and strings, Russ Garcia (director)"
+# artists = "Ornette Coleman (alto saxophone) Dewey Redman (tenor saxophone) Cedar Walton (piano) Jim Hall (guitar) Charlie Haden (bass) Ed Blackwell (drums) Webster Armstrong (vocals) with unidentified woodwind quintet: unknown (French horn) unknown (flute) unknown (oboe) unknown (bassoon) unknown (clarinet)"
+# artists = "Bill Evans (piano) unidentified brass, woodwinds, rhythm and strings, Claus Ogerman (arranger, conductor)"
+# artists = "Stan Getz (tenor saxophone) Gary Burton (vibraphone) Kenny Burrell (guitar) George Duvivier (bass) Joe Hunt (drums) percussion and choir, Lalo Schifrin (arranger, conductor)"
+    # HAS REPLACES STRING: unidentified brass, percussion and choir replaces percussion and choir"
+# artists = "Dizzy Gillespie (trumpet) Wade Legge (piano) Lou Hackney (bass) Al Jones (drums) unidentified trombones, guitar, woodwinds, harp and strings"
 
 
 class AlbumPersonnel():
@@ -47,7 +55,7 @@ class AlbumPersonnel():
                 """
                 self.personnel_string = personnel_string
                 self.final_artist_arrays = []
-                self.orchestra = []
+                self.odd = None
 
         def initial_artist_arrays(self):
                 """
@@ -60,35 +68,23 @@ class AlbumPersonnel():
                 initial_artist_arrays = [artist.split() for artist in split_artists]
                 return initial_artist_arrays
 
-        def extract_and_assign_orchestras(self):
+
+        def odd_personnel(self, initial_artists):
                 """
-                Check to see if there are any orchestras mentioned in the personnel
-                string. If so, assign them to self.final_artist_arrays and return an
-                artist array without the orcehstra.
+                Use the functions provided in the oddpersonnel module to
+                isolate uncommon personnel sub-strings. If there are any,
+                convert them into a dict and assign to self.odd.  Return
+                all of the standard-formatted personnel.
                 """
-                orchestra = []
-                initial_artist_arrays = self.initial_artist_arrays()
-                for artist_array in initial_artist_arrays:
-                        for word in artist_array:
-                                if "rchestra" in word:  # may need to ammend to allow for upper-case?
-                                        target_array = artist_array
-                                        target_array_index = initial_artist_arrays.index(target_array)
-                                        for word in target_array:
-                                                if not word.endswith(","):
-                                                        orchestra.append(word)
-                                                else:
-                                                        orchestra.append(word)
-                                                        break
-                                        target_array = target_array[len(orchestra):]
-                                        initial_artist_arrays[target_array_index] = target_array
-                                        counter = 1
-                                        orch_dict = {}
-                                        for word in orchestra:
-                                                key = "orch_" + str(counter)
-                                                orch_dict[key] = word
-                                                counter += 1
-                                        self.orchestra.append(orch_dict)
-                return initial_artist_arrays
+                odd, standard = oddpersonnel.odd_or_standard(initial_artists)
+                if odd == None:
+                        return initial_artist_arrays
+                else:
+                        isolate_odd, isolate_standard = oddpersonnel.isolate_odd_personnel(odd)
+                        self.odd = oddpersonnel.odd_personnel_to_dict(isolate_odd)
+                        if len(isolate_standard) >= 1:
+                                standard.append(isolate_standard)
+                        return standard
 
         def partition_artist_array(self, artist_array):
                 """
@@ -110,9 +106,11 @@ class AlbumPersonnel():
                 calling initial_artist_arrays() and return a list of partitioned
                 artist arrays.
                 """
+                initial_artists = self.initial_artist_arrays()
+                standard_personnel = self.odd_personnel(initial_artists)
                 partitioned_artist_arrays = [self.partition_artist_array(array)
-                                                                         for array
-                                                                         in self.extract_and_assign_orchestras()]
+                                             for array
+                                             in standard_personnel]
                 return partitioned_artist_arrays
 
 # # # The Rogue-Array Correction Suite # # #
@@ -239,7 +237,7 @@ class AlbumPersonnel():
                                 revised_array.append(word)
                 return revised_array
 
-# #     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
         def correct_multiple_artists(self):
                 """
@@ -248,13 +246,12 @@ class AlbumPersonnel():
                 """
 
                 correct_multiple_artists = []
-                for artist_array in self.partitioned_artist_arrays():  ### update to match new function
+                for artist_array in self.partitioned_artist_arrays():
                         if self.contains_multiple_artists(artist_array[0]):
                                 for artist in self.split_multiple_artists(artist_array[0]):
                                         temporary_array = []
                                         temporary_array.append(artist)
                                         temporary_array.append(artist_array[1])
-                                        # print "test: ", temporary_array
                                         correct_multiple_artists.append(temporary_array)
                         else:
                                 correct_multiple_artists.append(artist_array)
@@ -391,19 +388,18 @@ def album_artists(personnel_string):
                 album_artist = AlbumArtist(artist_array)
                 album_artist.create_artist_dict()
                 artist_dicts.append(album_artist.artist_dict)
-        if len(personnel.orchestra) > 0:
-                for d in personnel.orchestra:
-                        artist_dicts.append(d)
+        if personnel.odd != None:
+                artist_dicts.append(personnel.odd)
         return artist_dicts
 
 def print_album_artists():
         artist_dict = album_artists(artists)
-        orchestra = []
+        odd = None
         for d in artist_dict:
                 keys = d.keys()
-                for word in keys:
-                        if "orch" in word:
-                                orchestra = d
+                for key in keys:
+                        if "odd" in key:
+                                odd = d
                                 artist_dict.remove(d)
                                 break
         for d in artist_dict:
@@ -423,15 +419,31 @@ def print_album_artists():
                         for i in inst[:-1]:
                                 print d[i], ", ",
                         print d[inst[-1]]
-        if len(orchestra) > 0:
-                print "Orchestra --- ",
-                keys = [word for word in orchestra.keys()]
-                for key in keys[::-1]:
-                        print orchestra[key],
+        if odd != None:
+                keys = [word for word in odd.keys()]
+                counter = 1
+                while counter <= len(keys):
+                        key = "odd_" + str(counter)
+                        print odd[key],
+                        counter += 1
+
+# test = AlbumPersonnel(artists)
+
+# print test.partitioned_artist_arrays(), "\n"
+
+# i = test.initial_artist_arrays()
+
+# o = test.odd_personnel(i)
+
+# test.correct_multiple_word_instruments()
+
+# print 'Odd Personnel: ', test.odd
+
+# print 'Final Artist Arrays: ', test.final_artist_arrays
 
 
 # for d in album_artists(artists):
 #       print d, "\n"
 
 
-# print_album_artists()
+print_album_artists()

@@ -457,7 +457,7 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[144] # first album markup
+string_markup = cannonball_catalog.string_markup[9] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -524,7 +524,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # c_s = cannonball_album.remaining_strings_to_dict(e_r)
 
-# for item in o_a:
+# for item in o_p:
 #         print item, "\n"
 
 
