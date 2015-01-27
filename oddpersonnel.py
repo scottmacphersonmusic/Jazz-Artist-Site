@@ -4,56 +4,8 @@ them and parses them accordingly.
 """
 # take initial_artist_arrays from personnelparser and return the artist arrays less any suspiciously odd personnel
 
-common_oddities = ['unidentified orchestra',
-                   'unidentified orchestra, including strings',
-                   'unidentified orchestra and vocal group',
-                   'unidentified big band, including strings',
-                   'unidentified brass, reeds and vocals'
-                   'unidentified strings and vocals',
-                   'unidentified strings and chorus',
-                   'unidentified strings',
-                   'with unidentified vocal group and orchestra',
-                   '+ overdubs: unidentified strings',
-                   'unidentified large orchestra',
-                   'unidentified chorus',
-                   'unidentified vocal chorus',
-                   'unidentified brass, reeds, rhythm and strings',
-                   'unidentified large studio band',
-                   'with unidentified woodwind quintet: unknown',
-                   'unidentified brass and strings',
-                   'unidentified horns and strings',
-                   'unidentified large orchestra, strings and choir',
-                   'unidentified brass, woodwinds, rhythm and strings',
-                   'unidentified brass, woodwinds and strings',
-                   'unidentified horns, reeds and strings',
-                   'unidentified studio band',
-                   'unidentified woodwinds',
-                   'unidentified brass, percussion and choir',
-                   'unidentified brass, strings and chorus',
-                   'unidentified orchestra and choir',
-                   'unidentified strings, and others',
-                   'unidentified trombones, guitar, woodwinds, harp and strings',
-                   'unidentified vocal group',
-                   'unidentified large symphony orchestra',
-                   'unidentified string quartet',
-                   '+ overdubs: unidentified horns and strings',
-                   'unidentified woodwinds and strings',
-                   'unidentified brass and woodwinds',
-                   'unidentified horn and brass',
-                   'unidentified choir',
-                   'unidentified orchestra, and others',
-                   'unidentified band vocals (-1)',
-                   'unidentified 5 strings',
-                   'unidentified oboe and strings',
-                   'unidentified Afro-Cuban band',
-                   'unidentified big band',
-                   'unidentified 22 voices',
-                   'with unidentified brass, woodwinds, strings and vocal chorus',
-                   'unidentified percussion',
-                   'unidentified studio orchestra',
-                   'unidentified voices',
-                   'unidentified strings, harp, vocal choir',
-                   'unidentified brass, L.A. Philharmonic Strings with Michael Gibbs (conductor)'
+common_ensembles = ['unidentified brass, L.A. Philharmonic Strings with Michael Gibbs (conductor)'
+                    'Machito And His Orchestra'
 
                    'New York Philharmonic',
                    'Cincinnati Symphony Orchestra',
@@ -71,7 +23,6 @@ common_oddities = ['unidentified orchestra',
 
 odd_words = ['unidentified',
              'including',
-             'and',
              'with',
              '+',
              'overdub',
@@ -101,7 +52,8 @@ odd_words = ['unidentified',
              'harp',
              'symphony',
              'quartet',
-             'Afro-Cuban'
+             'Afro-Cuban',
+             'and'
 ]
 
 def odd_or_standard(artists):
@@ -121,6 +73,9 @@ def isolate_odd_personnel(odd_personnel):
         for w in odd_words:
             if w in a:
                 isolate_odd.append(a)
+            elif a == isolate_odd[-1]:
+                break
+
     isolate_standard = odd_personnel[len(isolate_odd):]
     return isolate_odd, isolate_standard
 
