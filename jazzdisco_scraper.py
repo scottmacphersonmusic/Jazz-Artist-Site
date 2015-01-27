@@ -97,6 +97,9 @@ class Album():
                 personnel = [string_list.splitlines()[1]
                              for string_list in split_strings
                              if len(string_list) > 1]
+                for item in personnel:
+                        if '<h2>' in item:
+                                personnel.remove(item)
                 return personnel
 
         def clean_extra_session_info(self, info):
@@ -459,7 +462,7 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[1] # first album markup
+string_markup = cannonball_catalog.string_markup[121] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -474,9 +477,9 @@ cannonball_album = Album(string_markup, catalog_soup)
         # cb 11 'Dinah Washington - Cat On A Hot Tin Roof'
                 # 'unidentified orchestra and vocal group,'
         # cb 21 'Machito And His Orchestra - Kenya-Afro Cuban Jazz'
-                # 'Machito And His Orchestra'
-        # cb ~50? 'Various Artists - The Nutty Squirrels'
-                # 'unidentified big band, including strings'
+                # 'Machito And His Orchestra' - save for when I'm figuring out all the proper ensmebles
+        # cb 73 'Various Artists - The Nutty Squirrels'
+                # 'unidentified big band, including strings' - at end of personnel string
         # cb 110 'Domination'
                 # 'Oliver Nelson Orchestra'
         # cb 112 'Great Love Themes'
@@ -526,7 +529,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # c_s = cannonball_album.remaining_strings_to_dict(e_r)
 
-# for item in o_p:
+# for item in r:
 #         print item, "\n"
 
 
@@ -547,6 +550,10 @@ cannonball_album.build_album_dict()
 cannonball_album.print_album_attributes()
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+
+# t = cannonball_album.album_dict
+
+# print t.keys()
 
         # ("meta", {"name":"City"}) to locate text in soup objects
 
