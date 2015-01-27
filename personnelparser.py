@@ -33,12 +33,13 @@ def contains_digits(word):
 # artists = "Nat Adderley (cornet) Cannonball Adderley (alto saxophone) Oliver Nelson Orchestra, Oliver Nelson (arranger, conductor)"
 # artists = "Cannonball Adderley (alto saxophone) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra, Hal Mooney (arranger, conductor)"
 # artists = "Cannonball Adderley (alto saxophone) unknown (harmonica -1) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra and vocal group, Hal Mooney (arranger, conductor)"
-artists = "Don Fagerquist (trumpet) Buddy DeFranco (clarinet) Sonny Clark (piano) Howard Roberts (guitar) unidentified brass, reeds, rhythm and strings, Russ Garcia (director)"
+# artists = "Don Fagerquist (trumpet) Buddy DeFranco (clarinet) Sonny Clark (piano) Howard Roberts (guitar) unidentified brass, reeds, rhythm and strings, Russ Garcia (director)"
 # artists = "Ornette Coleman (alto saxophone) Dewey Redman (tenor saxophone) Cedar Walton (piano) Jim Hall (guitar) Charlie Haden (bass) Ed Blackwell (drums) Webster Armstrong (vocals) with unidentified woodwind quintet: unknown (French horn) unknown (flute) unknown (oboe) unknown (bassoon) unknown (clarinet)"
 # artists = "Bill Evans (piano) unidentified brass, woodwinds, rhythm and strings, Claus Ogerman (arranger, conductor)"
 # artists = "Stan Getz (tenor saxophone) Gary Burton (vibraphone) Kenny Burrell (guitar) George Duvivier (bass) Joe Hunt (drums) percussion and choir, Lalo Schifrin (arranger, conductor)"
     # HAS REPLACES STRING: unidentified brass, percussion and choir replaces percussion and choir"
 # artists = "Dizzy Gillespie (trumpet) Wade Legge (piano) Lou Hackney (bass) Al Jones (drums) unidentified trombones, guitar, woodwinds, harp and strings"
+artists = "Bobby Jaspar, Sam Most (flute) Cannonball Adderley, Hal McKusick (alto saxophone) Romeo Penque, Sol Schlinger (woodwinds) Sacha Burland, Don Elliott (vocals) unidentified big band, including strings"
 
 
 class AlbumPersonnel():
@@ -63,8 +64,13 @@ class AlbumPersonnel():
                 containing an artist's name/s and instrument/track info.
                 """
                 split_strings = self.personnel_string.split(")")
-                split_artists = [string.lstrip(" ")  + ")" for string           # replace ")" delimiter for later use
+                if split_strings[-1] == '':
+                        split_artists = [string.lstrip(" ")  + ")" for string           # replace ")" delimiter for later use
                                                  in split_strings[:len(split_strings) - 1]]     # avoid last empty item
+                else:
+                        split_artists = [string.lstrip(" ")  + ")" for string           # in case last item w/out parens
+                                                 in split_strings[:len(split_strings)]]
+                        split_artists[-1] = split_artists[-1].rstrip(')')
                 initial_artist_arrays = [artist.split() for artist in split_artists]
                 return initial_artist_arrays
 
@@ -78,6 +84,7 @@ class AlbumPersonnel():
                 """
                 odd, standard = oddpersonnel.odd_or_standard(initial_artists)
                 if odd == None:
+                        print 'odd == None'
                         return initial_artists
                 else:
                         isolate_odd, isolate_standard = oddpersonnel.isolate_odd_personnel(odd)
@@ -284,7 +291,8 @@ class AlbumPersonnel():
                 for artist_array in self.correct_multiple_ranges():
                         if self.contains_multiple_word_instrument(artist_array[1]):
                                 temporary_array = []
-                                instruments = self.join_multiple_word_instrument(artist_array[1])
+                                instruments = self.join_multiple_word_instrument(
+                                        self.join_multiple_word_instrument(artist_array[1])) #hack to deal w/3-word inst
                                 temporary_array.append(artist_array[0])
                                 temporary_array.append(instruments)
                                 self.final_artist_arrays.append(temporary_array)
@@ -427,13 +435,17 @@ def print_album_artists():
                         print odd[key],
                         counter += 1
 
-# test = AlbumPersonnel(artists)
+#BOOKMARK: keep testing the oddpersonnel module with different personnel strings to help make it as robust as it needs to be!
+    # make a list of common orch/symph/philharmonics to check against for odd personnel
+    # make sure oddpersonnel can deal with a number/digit without stopping before its supposed to
 
-# print test.partitioned_artist_arrays(), "\n"
+# test = AlbumPersonnel(artists)
 
 # i = test.initial_artist_arrays()
 
 # o = test.odd_personnel(i)
+
+# print test.partitioned_artist_arrays(), "\n"
 
 # test.correct_multiple_word_instruments()
 
@@ -441,9 +453,11 @@ def print_album_artists():
 
 # print 'Final Artist Arrays: ', test.final_artist_arrays
 
+# for a in o:
+#         print a, "\n"
 
 # for d in album_artists(artists):
 #       print d, "\n"
 
 
-print_album_artists()
+# print_album_artists()
