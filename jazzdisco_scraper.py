@@ -462,7 +462,7 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[121] # first album markup
+string_markup = cannonball_catalog.string_markup[73] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -505,6 +505,7 @@ cannonball_album = Album(string_markup, catalog_soup)
                         # Blockbuster
                 # after string has been split but before it has been assigned to dict:
                 #       make a dict key for 'pseudonym'
+        # Keith Jarret - some albums use 'plays' shorthand in personnel strings
 
 
 #cannonball_album.process_personnel_strings()
