@@ -123,6 +123,9 @@ class Album():
                         info = split_ic[0] + split_ic[1]
                 if '<br/>' in info:
                         info = info.rstrip('<br/>')
+                if "\n" in info:
+                        info = info.lstrip("\n")
+                        info = info.rstrip("\n")
                 return info
 
         def assign_and_remove_alternate_issue_info(self, personnel):
@@ -309,8 +312,11 @@ class Album():
                 markup =  self.string_markup
                 if "<br/>" in markup:
                         extra_session_info = markup.split("<br/>")[1]
+                        if "<h2>" in extra_session_info:
+                                extra_session_info = extra_session_info.split("<h2>")[0]
                         index = len([key for key in self.album_dict.keys() if "alt_album_info_" in key]) + 1
                         key = "alt_album_info_" + str(index)
+                        # print self.clean_extra_session_info(extra_session_info)
                         self.album_dict[key] = self.clean_extra_session_info(extra_session_info)
 
         def set_sibling_limit(self):
