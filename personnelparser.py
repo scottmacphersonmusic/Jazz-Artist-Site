@@ -457,7 +457,6 @@ def print_album_artists():
                         counter += 1
 
 #BOOKMARK: keep testing the oddpersonnel module with different personnel strings to help make it as robust as it needs to be!
-    # make a list of common orch/symph/philharmonics to check against for odd personnel
     # make sure oddpersonnel can deal with a number/digit without stopping before its supposed to
 
 # test = AlbumPersonnel(artists)

@@ -195,8 +195,37 @@ class Album():
                         if 'add' not in p \
                         and 'same' not in p \
                         and 'replaces' not in p \
-                        and 'omit' not in p:
+                        and 'omit' not in p \
+                        and 'plays' not in p:
                                 personnel[i] = personnelparser.album_artists(p)
+                return personnel
+
+        def expand_plays(self, personnel):
+                """
+                Identify and modify any personnel strings using the keyword
+                'plays'.
+                """
+                for p in personnel[1:]:
+                        if "plays" in p:
+                                index = personnel.index(p)
+                                previous_personnel = copy.deepcopy(personnel[index - 1])
+                                split = p.split("plays")
+                                l_name, inst = split[0].rstrip(), split[1].lstrip()
+                                for d in previous_personnel:
+                                        if l_name in d.values():
+                                                target = d
+                                                previous_personnel.remove(d)
+                                name = [(n, target[n]) for n in target if 'name' in n]
+                                sorted_name = sorted(name)
+                                temp = ""
+                                for name in sorted_name:
+                                        temp += name[1] + " "
+                                temp += inst
+                                temp_dict = personnelparser.album_artists(temp)[0]
+                                revised_personnel = previous_personnel
+                                revised_personnel.append(temp_dict)
+                                personnel[index] = revised_personnel
+                                return personnel
                 return personnel
 
         def expand_same_personnel(self, personnel):
@@ -275,7 +304,8 @@ class Album():
                                                                                 assign_alt_issue_info)
                 original_to_dict = self.original_personnel_to_dict(remove_markup)
                 standard_personnel = self.standard_personnel_to_dict(original_to_dict)
-                expand_same_personnel = self.expand_same_personnel(standard_personnel)
+                expand_plays = self.expand_plays(standard_personnel)
+                expand_same_personnel = self.expand_same_personnel(expand_plays)
                 expand_add = self.expand_add(expand_same_personnel)
                 expand_replaces = self.expand_replaces(expand_add)
                 omit_artists = self.omit_artists(expand_replaces)
@@ -478,45 +508,17 @@ class Album():
 
 # Temporary Instantiation Tests:
 category_links = get_category_links(BASE_URL)
-test_page = category_links[0] # Cannonball catalog is 0
+test_page = category_links[33] # Cannonball catalog is 0 (33, Jarret)
 catalog = ArtistCatalog(test_page)
 
 #find album:
-# print catalog.find_album_number('Julian "Cannonball" Adderley')
+# print catalog.find_album_number("Keith Jarrett - The Impulse Years, 1973-1974")
 
-string_markup = catalog.string_markup[90] # first album markup
+string_markup = catalog.string_markup[54] # first album markup
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
-    # Cannonball albums with 'unidentified', nonstandard artists
-    # note: this endeavor has been relocated to the module named oddpersonnel.py
-        # cb 9 'Julian Cannonball Adderley And Strings'
-                # 'unidentified orchestra'
-        # cb 10 'Dinah Washington In The Land Of High-Fi'
-                # 'unidentified orchestra,'
-                # 'unidentified orchestra, including strings replaces unidentified orchestra'
-        # cb 11 'Dinah Washington - Cat On A Hot Tin Roof'
-                # 'unidentified orchestra and vocal group,'
-        # cb 21 'Machito And His Orchestra - Kenya-Afro Cuban Jazz'
-                # 'Machito And His Orchestra' - save for when I'm figuring out all the proper ensmebles
-        # cb 73 'Various Artists - The Nutty Squirrels'
-                # 'unidentified big band, including strings' - at end of personnel string
-        # cb 110 'Domination'
-                # 'Oliver Nelson Orchestra' - same as cb 21 - proper names list...
-        # cb 112 'Great Love Themes'
-                # 'unidentified strings and vocals'
-        # cb 121 'Cannonball Adderley - Accent On Africa'
-                # "unidentified brass, reeds and vocals,"
-        # cb 125  'The Cannonball Adderley Quintet and Orchestra'
-                # 'unidentified orchestra' (+ 2 conductors)
-        # cb 144 'Cannonball Adderley - Big Man'
-                # "unidentified strings and chorus, probably David Axelrod (arranger, conductor)'
-        # strategy:
-                        # the orchestra ones could focus on 'unidentified' rather than 'orchestra', 'brass'...
-                        # look for commas, look for word which start with Caps
-                        # would it be totally ridiculous to make a dict (or some data structure) with the common weird strings
-
         # cannonball 16, 24
                 # 'cannonball adderley as ronnie peters'
                 # apparentely cannonball went by a couple pseudonyms:
@@ -527,9 +529,10 @@ cannonball_album = Album(string_markup, catalog_soup)
                         # Blockbuster
                 # after string has been split but before it has been assigned to dict:
                 #       make a dict key for 'pseudonym'
-        # cb 85 'Julian "Cannonball" Adderley'
-                # ends with 'and others'
         # Keith Jarret - some albums use 'plays' shorthand in personnel strings
+                # 5, 33, 34, 54
+#  BOOKMARK: figure out how to order personnel string processing so the following is solved:
+                # on 34 a 'same' personnel string comes after a 'plays', but 33 and 54 are the other way...
 
 
 # cannonball_album.process_personnel_strings()
@@ -550,7 +553,9 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # e_r = cannonball_album.expand_replaces(e_s)
 
-# o_a = cannonball_album.omit_artists(e_r)
+# e_p = cannonball_album.expand_plays(e_r)
+
+# o_a = cannonball_album.omit_artists(e_p)
 
 # c_s = cannonball_album.remaining_strings_to_dict(e_r)
 
@@ -558,7 +563,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 #         for d in item:
 #                 print d, "\n"
 
-# for thing in o_p:
+# for thing in e_p:
 #         print thing, "\n"
 
 
