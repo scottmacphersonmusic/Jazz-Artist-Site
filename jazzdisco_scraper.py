@@ -382,6 +382,8 @@ class Album():
                 personnel = copy.deepcopy(personnel_dict)
                 odd = None
                 for artist_dict in personnel:
+                        # print artist_dict
+                        # print type(artist_dict)
                         for key in artist_dict.keys():
                                 if 'odd' in key:
                                         odd = artist_dict
@@ -462,7 +464,7 @@ category_links = get_category_links(BASE_URL)
 test_page = category_links[0] # Cannonball catalog
 cannonball_catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[73] # first album markup
+string_markup = cannonball_catalog.string_markup[144] # first album markup
 catalog_soup = cannonball_catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -481,7 +483,7 @@ cannonball_album = Album(string_markup, catalog_soup)
         # cb 73 'Various Artists - The Nutty Squirrels'
                 # 'unidentified big band, including strings' - at end of personnel string
         # cb 110 'Domination'
-                # 'Oliver Nelson Orchestra'
+                # 'Oliver Nelson Orchestra' - same as cb 21 - proper names list...
         # cb 112 'Great Love Themes'
                 # 'unidentified strings and vocals'
         # cb 121 'Cannonball Adderley - Accent On Africa'
@@ -508,7 +510,7 @@ cannonball_album = Album(string_markup, catalog_soup)
         # Keith Jarret - some albums use 'plays' shorthand in personnel strings
 
 
-#cannonball_album.process_personnel_strings()
+# cannonball_album.process_personnel_strings()
 
 # p = cannonball_album.extract_personnel_strings()
 
@@ -530,7 +532,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # c_s = cannonball_album.remaining_strings_to_dict(e_r)
 
-# for item in r:
+# for item in o_p:
 #         print item, "\n"
 
 
@@ -548,7 +550,10 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 cannonball_album.build_album_dict()
 
-# cannonball_album.print_album_attributes()
+# for d in cannonball_album.album_dict:
+#         print d, ': ',  cannonball_album.album_dict[d], "\n"
+
+cannonball_album.print_album_attributes()
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 

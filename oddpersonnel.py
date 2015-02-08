@@ -31,39 +31,8 @@ common_ensembles = ['Machito And His Orchestra',
                     'Frank DeVol Orchestra',
                     'Boston Pops Orchestra',
                     'percussion and choir',
-                    'Duke Ellington And His Orchestra',
-                    'NDR Big Band',
-                    'New York Chamber Symphony',
-                    'Kurt Edelhagen Big Band',
-                    'String Section Of The Sudfunk Symphony Orchestra, Stuttgart',
-                    'Strings Of Sudfunk Symphony Orchestra, Stuttgart',
-                    'Members Of Radio Symphony Orchestra, Stuttgart (string orchestra)',
-                    'Syracuse Symphony',
-                    'New Japan Philharmonic',
-                    "American Composer's Orchestra",
-                    'Fairfield Orchestra',
-                    'Stuttgarter Kammerorchester',
-                    'Brooklyn Philharmonic',
-                    'Myrna Summers And The Interdenominational Singers',
-                    'American Brass Quintet',
-                    'Piece For Four Celli And Two Trombones',
-                    'Roland Kirk Spirit Choir (backing vocals)',
-                    'National Philharmonic Orchestra (-6/9)',
-                    'Ambrosian Choir (-9)',
-                    'London Orchestra, The Royal Ballet, The Cambodian Royal Palace',
-                    'Toshiyuki Miyama And His New Herd Orchestra',
-                    'overdubbed 14 piece strings',
-                    "New York Group Singer's Big Band",
-                    'Hand Made Band',
-                    '5 horns, 5 flutes, 10 celli, harp, percussion',
-                    'probably 4 trumpet, 3-4 trombone, 5 reeds and strings',
-                    'New Orchestra Of Boston',
-                    '90 voice Sound Awareness Ensemble',
-                    "10 members of The West Los Angeles Christian Academy Children's Choir",
-                    'Chuck Niles And The Los Angeles Modern Strings Orchestra (-5)',
-                    '
-
-]    #maybe use this to list the full orchestras/philharmonics/ensembles that will be encountered?
+                    'Duke Ellington And His Orchestra'
+]
 
 odd_words = ['unidentified',
              'including',
@@ -90,7 +59,7 @@ odd_words = ['unidentified',
              'woodwind',
              'percussion',
              'quintet',
-#             'unknown',
+             'unknown',
              'trombone',
              'guitar',
              'harp',
@@ -100,36 +69,73 @@ odd_words = ['unidentified',
              'and'
 ]
 
-def odd_or_standard(artists):
-    odd_personnel = None
-    for a in artists:
-        if 'unidentified' in a:   # or is one of the cap. O Orchestras or Sympyhonies or Philharmonics...
-            odd_personnel = a
-    standard_personnel = [a for a in artists if 'unidentified' not in a]
-    return odd_personnel, standard_personnel
+class ProperEnsemble():
+
+    def __init__(self, artists):
+        self.artists = artists
+
+    def has_common_ensemble(self, artist):
+        joined_artist = ""
+        for i in artist:
+            joined_artist += i + ' '
+        for e in common_ensembles:
+            if e in joined_artist:
+                split_ensemble = e.split()
+                # print 'artist: ', artist
+                # print 'split_ensemble: ', split_ensemble
+                target = [artist.index(word) for word in artist
+                          if split_ensemble[-1] in word][0] + 1
+                proper_ensemble = e
+                standard_personnel = artist[target:]
+                return proper_ensemble, standard_personnel
+
+    def filter_common_ensembles(self):
+        for a in self.artists:
+            # print 'running has_common_ensemble(): ', a
+            if self.has_common_ensemble(a) != None:
+                # print 'branch a'
+                proper_ensemble, standard_personnel = self.has_common_ensemble(a)
+                index = self.artists.index(a)
+                self.artists[index] = standard_personnel
+                return proper_ensemble, self.artists
+        return self.artists
+
+
+class OddPersonnel():
+
+    def __init__(self, artists):
+        self.artists = artists
+
+    def odd_or_standard(self):
+        odd_personnel = None
+        for a in self.artists:
+            if 'unidentified' in a:
+                odd_personnel = a
+                standard_personnel = [a for a in self.artists if 'unidentified' not in a]
+                return odd_personnel, standard_personnel
+        return None, self.artists
 
 # will need to make sure the instruments I'm checking for aren't inside parens
 # also can use the regex number checker from personnelparser to look for either track info or numbers inside p-strings
 
-def isolate_odd_personnel(odd_personnel):
-    isolate_odd = []
-    for a in odd_personnel:  # will it ever be the case that there is more than one sub-personnel item with 'unidentified'?
-        for w in odd_words:
-            if w in a:
-                isolate_odd.append(a)
-            elif a == isolate_odd[-1]:
-                break
+    def isolate_odd_personnel(self, odd_personnel):
+        isolate_odd = []
+        for a in odd_personnel:  # will it ever be the case that there is more than one sub-personnel item with 'unidentified'?
+            for w in odd_words:
+                if w in a:
+                    isolate_odd.append(a)
+                elif a == isolate_odd[-1]:
+                    break
+        isolate_standard = odd_personnel[len(isolate_odd):]
+        return isolate_odd, isolate_standard
 
-    isolate_standard = odd_personnel[len(isolate_odd):]
-    return isolate_odd, isolate_standard
-
-def odd_personnel_to_dict(isolate_odd):
-    if isolate_odd[-1].endswith(','):
-        isolate_odd[-1] = isolate_odd[-1].rstrip(',')
-    odd_dict = {}
-    counter = 1
-    for o in isolate_odd:
-        key = "odd_" + str(counter)
-        odd_dict[key] = o
-        counter += 1
-    return odd_dict
+    def odd_personnel_to_dict(self, isolate_odd):
+        if isolate_odd[-1].endswith(','):
+            isolate_odd[-1] = isolate_odd[-1].rstrip(',')
+        odd_dict = {}
+        counter = 1
+        for o in isolate_odd:
+            key = "odd_" + str(counter)
+            odd_dict[key] = o
+            counter += 1
+        return odd_dict

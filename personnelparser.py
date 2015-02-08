@@ -27,9 +27,10 @@ def contains_digits(word):
 # artists = "Chet Baker (trumpet) Ted Ottison (trumpet -5,6) Sonny Criss (alto saxophone -1,2,6) Jack Montrose (tenor saxophone -1/3,6) Les Thompson (harmonica -7) Al Haig (piano) Dave Bryant (bass) Larry Bunker (drums)"
 # artists = "Chet Baker, Pete Candoli (trumpet) Bob Enevoldsen (valve trombone) John Graas (French horn) Ray Siegel (tuba) Bud Shank (alto saxophone) Don Davidson (baritone saxophone) Gerry Mulligan (baritone saxophone, piano) Joe Mondragon (bass) Chico Hamilton (drums)"
 # artists = "Chet Baker (trumpet) with Siegfried Achhammer, Klaus Mitchele, Rolf Schneebiegl, Hans Wilfert (trumpet) Werner Betz, Otto Bredl, Helmut Hauck, Heinz Hermansdorfer (trombone) Franz Von Klenck, Helmut Rheinhardt (alto saxophone) Bubi Aderhold, Paul Martin (tenor saxophone) Johnny Feigl (baritone saxophone) Werner Drexler (piano) Werner Schulze (bass) Silo Deutsch (drums) Kurt Edelhagen (leader)"
-# artists = "Cannonball Adderley (alto saxophone) unidentified orchestra, Richard Hayman (director)"
+artists = "Cannonball Adderley (alto saxophone) Machito And His Orchestra, Machito (leader)"
 
 # 'unidentified' personnel strings:
+# artists = "Cannonball Adderley (alto saxophone) unidentified orchestra, Richard Hayman (director)"
 # artists = "Nat Adderley (cornet) Cannonball Adderley (alto saxophone) Oliver Nelson Orchestra, Oliver Nelson (arranger, conductor)"
 # artists = "Cannonball Adderley (alto saxophone) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra, Hal Mooney (arranger, conductor)"
 # artists = "Cannonball Adderley (alto saxophone) unknown (harmonica -1) Junior Mance (piano) Dinah Washington (vocals) unidentified orchestra and vocal group, Hal Mooney (arranger, conductor)"
@@ -39,7 +40,7 @@ def contains_digits(word):
 # artists = "Stan Getz (tenor saxophone) Gary Burton (vibraphone) Kenny Burrell (guitar) George Duvivier (bass) Joe Hunt (drums) percussion and choir, Lalo Schifrin (arranger, conductor)"
     # HAS REPLACES STRING: unidentified brass, percussion and choir replaces percussion and choir"
 # artists = "Dizzy Gillespie (trumpet) Wade Legge (piano) Lou Hackney (bass) Al Jones (drums) unidentified trombones, guitar, woodwinds, harp and strings"
-artists = "Bobby Jaspar, Sam Most (flute) Cannonball Adderley, Hal McKusick (alto saxophone) Romeo Penque, Sol Schlinger (woodwinds) Sacha Burland, Don Elliott (vocals) unidentified big band, including strings"
+# artists = "Bobby Jaspar, Sam Most (flute) Cannonball Adderley, Hal McKusick (alto saxophone) Romeo Penque, Sol Schlinger (woodwinds) Sacha Burland, Don Elliott (vocals) unidentified big band, including strings"
 
 
 class AlbumPersonnel():
@@ -56,7 +57,7 @@ class AlbumPersonnel():
                 """
                 self.personnel_string = personnel_string
                 self.final_artist_arrays = []
-                self.odd = None
+                self.odd = []
 
         def initial_artist_arrays(self):
                 """
@@ -82,15 +83,33 @@ class AlbumPersonnel():
                 convert them into a dict and assign to self.odd.  Return
                 all of the standard-formatted personnel.
                 """
-                odd, standard = oddpersonnel.odd_or_standard(initial_artists)
-                if odd == None:
-                        print 'odd == None'
-                        return initial_artists
+                proper_instance = oddpersonnel.ProperEnsemble(initial_artists)
+                proper_filtered =  proper_instance.filter_common_ensembles()
+                if type(proper_filtered[0]) == str:
+                        counter = len(self.odd) + 1
+                        key = 'odd_' + str(counter)
+                        self.odd.append({key: proper_filtered[0]})
+                        artists = proper_filtered[1]
                 else:
-                        isolate_odd, isolate_standard = oddpersonnel.isolate_odd_personnel(odd)
-                        self.odd = oddpersonnel.odd_personnel_to_dict(isolate_odd)
+                        artists = proper_filtered
+                # print 'artists after proper: ', artists
+                # print 'self.odd after proper: ', self.odd
+
+                odd_instance = oddpersonnel.OddPersonnel(artists)
+                odd, standard = odd_instance.odd_or_standard()
+                # print 'odd: ', odd
+                # print 'standard: ', standard
+                if odd == None:
+                        # print 'odd == None'
+                        return artists
+                else:
+                        isolate_odd, isolate_standard = odd_instance.isolate_odd_personnel(odd)
+                        self.odd.append(odd_instance.odd_personnel_to_dict(isolate_odd))
                         if len(isolate_standard) >= 1:
                                 standard.append(isolate_standard)
+                        # print 'isolate_odd: ', isolate_odd
+                        # print 'standard: ', standard
+                        # print self.odd
                         return standard
 
         def partition_artist_array(self, artist_array):
@@ -397,7 +416,8 @@ def album_artists(personnel_string):
                 album_artist.create_artist_dict()
                 artist_dicts.append(album_artist.artist_dict)
         if personnel.odd != None:
-                artist_dicts.append(personnel.odd)
+                for d in personnel.odd:
+                        artist_dicts.append(d)
         return artist_dicts
 
 def print_album_artists():
@@ -460,4 +480,4 @@ def print_album_artists():
 #       print d, "\n"
 
 
-print_album_artists()
+# print_album_artists()
