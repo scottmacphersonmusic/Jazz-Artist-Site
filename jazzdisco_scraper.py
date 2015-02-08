@@ -57,6 +57,17 @@ class ArtistCatalog():
                 self.catalog_soup = self.soup.find(id="catalog-data")
                 self.string_markup = str(self.catalog_soup).split("<h3>")
 
+        def find_album_number(self, title):
+                """Given the title of an album, return the index."""
+                index = 0
+                for album in self.string_markup:
+                        if title in album:
+                                index = self.string_markup.index(album)
+                if index != 0:
+                        return index
+                else:
+                        return 'Title Not Found  :('
+
 
 class Album():
 
@@ -461,11 +472,14 @@ class Album():
 
 # Temporary Instantiation Tests:
 category_links = get_category_links(BASE_URL)
-test_page = category_links[0] # Cannonball catalog
-cannonball_catalog = ArtistCatalog(test_page)
+test_page = category_links[0] # Cannonball catalog is 0
+catalog = ArtistCatalog(test_page)
 
-string_markup = cannonball_catalog.string_markup[144] # first album markup
-catalog_soup = cannonball_catalog.catalog_soup
+#find album:
+# print catalog.find_album_number("Cannonball Adderley - Nippon Soul")
+
+string_markup = catalog.string_markup[105] # first album markup
+catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
 # Problem Albums:
