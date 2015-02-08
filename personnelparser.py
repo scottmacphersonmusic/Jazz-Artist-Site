@@ -83,34 +83,26 @@ class AlbumPersonnel():
                 convert them into a dict and assign to self.odd.  Return
                 all of the standard-formatted personnel.
                 """
-                proper_instance = oddpersonnel.ProperEnsemble(initial_artists)
-                proper_filtered =  proper_instance.filter_common_ensembles()
-                if type(proper_filtered[0]) == str:
-                        counter = len(self.odd) + 1
-                        key = 'odd_' + str(counter)
-                        self.odd.append({key: proper_filtered[0]})
-                        artists = proper_filtered[1]
-                else:
-                        artists = proper_filtered
-                # print 'artists after proper: ', artists
-                # print 'self.odd after proper: ', self.odd
-
-                odd_instance = oddpersonnel.OddPersonnel(artists)
+                odd_instance = oddpersonnel.OddPersonnel(initial_artists)
                 odd, standard = odd_instance.odd_or_standard()
-                # print 'odd: ', odd
-                # print 'standard: ', standard
                 if odd == None:
-                        # print 'odd == None'
-                        return artists
+                        artists = initial_artists
                 else:
                         isolate_odd, isolate_standard = odd_instance.isolate_odd_personnel(odd)
                         self.odd.append(odd_instance.odd_personnel_to_dict(isolate_odd))
                         if len(isolate_standard) >= 1:
                                 standard.append(isolate_standard)
-                        # print 'isolate_odd: ', isolate_odd
-                        # print 'standard: ', standard
-                        # print self.odd
-                        return standard
+                        artists = standard
+                proper_instance = oddpersonnel.ProperEnsemble(artists)
+                proper_filtered =  proper_instance.filter_common_ensembles()
+                if type(proper_filtered[0]) == str:
+                        counter = len(self.odd) + 1
+                        key = 'odd_' + str(counter)
+                        self.odd.append({key: proper_filtered[0]})
+                        filtered_artists = proper_filtered[1]
+                else:
+                        filtered_artists = proper_filtered
+                return filtered_artists
 
         def partition_artist_array(self, artist_array):
                 """
