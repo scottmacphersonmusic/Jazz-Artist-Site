@@ -314,9 +314,9 @@ class Album():
                         extra_session_info = markup.split("<br/>")[1]
                         if "<h2>" in extra_session_info:
                                 extra_session_info = extra_session_info.split("<h2>")[0]
-                        index = len([key for key in self.album_dict.keys() if "alt_album_info_" in key]) + 1
+                        index = len([key for key in self.album_dict.keys()
+                                     if "alt_album_info_" in key]) + 1
                         key = "alt_album_info_" + str(index)
-                        # print self.clean_extra_session_info(extra_session_info)
                         self.album_dict[key] = self.clean_extra_session_info(extra_session_info)
 
         def set_sibling_limit(self):
@@ -482,9 +482,9 @@ test_page = category_links[0] # Cannonball catalog is 0
 catalog = ArtistCatalog(test_page)
 
 #find album:
-# print catalog.find_album_number("Cannonball Adderley - Nippon Soul")
+# print catalog.find_album_number('Julian "Cannonball" Adderley')
 
-string_markup = catalog.string_markup[105] # first album markup
+string_markup = catalog.string_markup[90] # first album markup
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -527,6 +527,8 @@ cannonball_album = Album(string_markup, catalog_soup)
                         # Blockbuster
                 # after string has been split but before it has been assigned to dict:
                 #       make a dict key for 'pseudonym'
+        # cb 85 'Julian "Cannonball" Adderley'
+                # ends with 'and others'
         # Keith Jarret - some albums use 'plays' shorthand in personnel strings
 
 
@@ -552,15 +554,12 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 # c_s = cannonball_album.remaining_strings_to_dict(e_r)
 
-# for item in o_p:
-#         print item, "\n"
+# for item in c_s:
+#         for d in item:
+#                 print d, "\n"
 
-
-# for thing in e_r:
-#         print type(thing)
-#         for item in thing:
-#                 print item
-#         print "\n"
+# for thing in o_p:
+#         print thing, "\n"
 
 
 #for thing in e_a:

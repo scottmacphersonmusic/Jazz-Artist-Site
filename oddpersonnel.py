@@ -30,8 +30,9 @@ common_ensembles = ['Machito And His Orchestra',
                     'Almost Big Band',
                     'Frank DeVol Orchestra',
                     'Boston Pops Orchestra',
+                    'Duke Ellington And His Orchestra',
                     'percussion and choir',
-                    'Duke Ellington And His Orchestra'
+                    'and others'
 ]
 
 odd_words = ['unidentified',

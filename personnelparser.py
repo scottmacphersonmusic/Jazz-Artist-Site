@@ -27,7 +27,8 @@ def contains_digits(word):
 # artists = "Chet Baker (trumpet) Ted Ottison (trumpet -5,6) Sonny Criss (alto saxophone -1,2,6) Jack Montrose (tenor saxophone -1/3,6) Les Thompson (harmonica -7) Al Haig (piano) Dave Bryant (bass) Larry Bunker (drums)"
 # artists = "Chet Baker, Pete Candoli (trumpet) Bob Enevoldsen (valve trombone) John Graas (French horn) Ray Siegel (tuba) Bud Shank (alto saxophone) Don Davidson (baritone saxophone) Gerry Mulligan (baritone saxophone, piano) Joe Mondragon (bass) Chico Hamilton (drums)"
 # artists = "Chet Baker (trumpet) with Siegfried Achhammer, Klaus Mitchele, Rolf Schneebiegl, Hans Wilfert (trumpet) Werner Betz, Otto Bredl, Helmut Hauck, Heinz Hermansdorfer (trombone) Franz Von Klenck, Helmut Rheinhardt (alto saxophone) Bubi Aderhold, Paul Martin (tenor saxophone) Johnny Feigl (baritone saxophone) Werner Drexler (piano) Werner Schulze (bass) Silo Deutsch (drums) Kurt Edelhagen (leader)"
-artists = "Cannonball Adderley (alto saxophone) Machito And His Orchestra, Machito (leader)"
+# artists = "Cannonball Adderley (alto saxophone) Machito And His Orchestra, Machito (leader)"
+artists = "Louis Armstrong, King Oliver (cornet) Scott Joplin, Fats Waller (piano rolls) Thelonious Monk, Jelly Roll Morton (piano) Ma Rainey (vocals) Cannonball Adderley (narrator, alto saxophone) and others"
 
 # 'unidentified' personnel strings:
 # artists = "Cannonball Adderley (alto saxophone) unidentified orchestra, Richard Hayman (director)"
@@ -100,6 +101,9 @@ class AlbumPersonnel():
                         key = 'odd_' + str(counter)
                         self.odd.append({key: proper_filtered[0]})
                         filtered_artists = proper_filtered[1]
+                        for artist in filtered_artists:
+                                if len(artist) == 0:
+                                        filtered_artists.remove(artist)
                 else:
                         filtered_artists = proper_filtered
                 return filtered_artists
@@ -110,13 +114,17 @@ class AlbumPersonnel():
                 identify the first word starting with a "(", and return an array
                 partitioned into two sub-arrays: [[names], [instruments_tracks]].
                 """
+                target = None
                 for word in artist_array:
                         if word.startswith("("):
                                 target = artist_array.index(word)
                 partitioned_artist_array = []
                 partitioned_artist_array.append(artist_array[:target])
                 partitioned_artist_array.append(artist_array[target:])
-                return partitioned_artist_array
+                if target == None:
+                        return artist_array
+                else:
+                        return partitioned_artist_array
 
         def partitioned_artist_arrays(self):
                 """
@@ -300,7 +308,8 @@ class AlbumPersonnel():
                 self.final_arrays in __init__.
                 """
                 for artist_array in self.correct_multiple_ranges():
-                        if self.contains_multiple_word_instrument(artist_array[1]):
+                        if self.contains_multiple_word_instrument(artist_array[1]) \
+                        and type(artist_array[1]) == list:
                                 temporary_array = []
                                 instruments = self.join_multiple_word_instrument(
                                         self.join_multiple_word_instrument(artist_array[1])) #hack to deal w/3-word inst
@@ -457,7 +466,8 @@ def print_album_artists():
 
 # o = test.odd_personnel(i)
 
-# print test.partitioned_artist_arrays(), "\n"
+# for a in test.partitioned_artist_arrays():
+#         print a, "\n"
 
 # test.correct_multiple_word_instruments()
 
