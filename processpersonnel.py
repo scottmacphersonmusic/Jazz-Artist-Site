@@ -23,6 +23,7 @@ def clean_extra_session_info(info):
 class ProcessPersonnel():
     def __init__(self, personnel):
         self.personnel = personnel
+        self.extra_info = {}
 
     def assign_and_remove_alternate_issue_info(self, personnel):
         album_info = []
@@ -34,7 +35,7 @@ class ProcessPersonnel():
         index = 1
         for string in album_info:
             key = "alt_album_info_" + str(index)
-            self.album_dict[key] = string
+            self.extra_info[key] = string
             index += 1
         return personnel
 
@@ -211,4 +212,7 @@ class ProcessPersonnel():
             key = "personnel_" + str(key_counter)
             processed_personnel[key] = l
             key_counter += 1
+        if len(self.extra_info) >= 1:
+            for item in self.extra_info:
+                processed_personnel[item] = self.extra_info[item]
         return processed_personnel
