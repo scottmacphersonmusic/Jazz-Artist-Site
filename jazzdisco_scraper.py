@@ -232,7 +232,7 @@ catalog = ArtistCatalog(test_page)
 # Find Album Index:
 # print catalog.find_album_number("Keith Jarrett - The Impulse Years, 1973-1974")
 
-string_markup = catalog.string_markup[13]
+string_markup = catalog.string_markup[5]
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -265,3 +265,5 @@ printing.print_album_attributes(cannonball_album.album_dict)
 
 # To Do:
     # non-critical: rewrite print functions using dict-based string formatting
+    # may eventually need to deal with track-info shorthand
+        # ex: "1, 4/7" - the backslash implies "1, 4,5,6,7"

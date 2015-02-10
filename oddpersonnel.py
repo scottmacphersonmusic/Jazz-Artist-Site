@@ -71,7 +71,6 @@ odd_words = ['unidentified',
 ]
 
 class ProperEnsemble():
-
     def __init__(self, artists):
         self.artists = artists
 
@@ -103,7 +102,6 @@ class ProperEnsemble():
 
 
 class OddPersonnel():
-
     def __init__(self, artists):
         self.artists = artists
 

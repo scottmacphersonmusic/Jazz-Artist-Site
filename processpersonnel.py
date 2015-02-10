@@ -4,6 +4,7 @@ dictionary of fully processed personnel.
 """
 import personnelparser
 import replaces
+import copy
 
 def clean_extra_session_info(info):
     """Remove markup from extra session info strings"""
