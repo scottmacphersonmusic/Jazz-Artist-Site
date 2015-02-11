@@ -103,27 +103,28 @@ class ProcessPersonnel():
         Identify and modify any personnel strings using the keyword
         'plays'.
         """
-        for p in personnel[1:]:
-            if "plays" in p:
-                index = personnel.index(p)
-                previous_personnel = copy.deepcopy(personnel[index - 1])
-                split = p.split("plays")
-                l_name, inst = split[0].rstrip(), split[1].lstrip()
-                for d in previous_personnel:
-                    if l_name in d.values():
-                        target = d
-                        previous_personnel.remove(d)
-                name = [(n, target[n]) for n in target if 'name' in n]
-                sorted_name = sorted(name)
-                temp = ""
-                for name in sorted_name:
-                    temp += name[1] + " "
-                temp += inst
-                temp_dict = personnelparser.album_artists(temp)[0]
-                revised_personnel = previous_personnel
-                revised_personnel.append(temp_dict)
-                personnel[index] = revised_personnel
-                return personnel
+        if len(personnel) > 1:
+            for p in personnel[1:]:
+                if "plays" in p:
+                    index = personnel.index(p)
+                    previous_personnel = copy.deepcopy(personnel[index - 1])
+                    split = p.split("plays")
+                    l_name, inst = split[0].rstrip(), split[1].lstrip()
+                    for d in previous_personnel:
+                        if l_name in d.values():
+                            target = d
+                            previous_personnel.remove(d)
+                    name = [(n, target[n]) for n in target if 'name' in n]
+                    sorted_name = sorted(name)
+                    temp = ""
+                    for name in sorted_name:
+                        temp += name[1] + " "
+                    temp += inst
+                    temp_dict = personnelparser.album_artists(temp)[0]
+                    revised_personnel = previous_personnel
+                    revised_personnel.append(temp_dict)
+                    personnel[index] = revised_personnel
+                    return personnel
         return personnel
 
     def expand_same_personnel(self, personnel):
@@ -169,7 +170,7 @@ class ProcessPersonnel():
                 personnel[i] = rep_personnel
         return personnel
 
-    def omit_artists(self, personnel):
+    def omit_artists(self, personnel): # make sure this can handle 2+ omissions in same personnel string
         for item in personnel:
             if 'omit' in item:
                 target = item.lstrip('omit ')
@@ -217,3 +218,30 @@ class ProcessPersonnel():
             for item in self.extra_info:
                 processed_personnel[item] = self.extra_info[item]
         return processed_personnel
+
+
+# Albums to test against:
+    # 0 - 1, Kenny Clarke - Bohemia After Dark
+        # generic album
+    # 0 - 5, Julian "Cannonball" Adderley
+        # 'same session' in initial personnel
+        # 'replaces' in later personnel
+    # 0 - 8, Sarah Vaughan In The Land Of Hi-Fi
+        # 'same personnel' in initial and subsequent personnel
+    # 0 - 22, The Complete Columbia Recordings Of Miles Davis With John Coltrane
+        # 'add' in 3rd personnel
+        # 'replaces' in 5th
+    # 0 - 29, Various Artists - The Sound Of Big Band Jazz In Hi-Fi!
+        # 'same' and 'replaces' in initial personnel
+    # 0 - 78, Cannonball Adderley - Alabama/Africa
+        # 'same' and 'add' in initial personnel
+    # 0 - 84, Nancy Wilson/Cannonball Adderley
+        # 'omit' in 2nd
+    # 25 - 2, Teddy Hill - I'm Happy, Darling, Dancing With You / Blue Rhythm Fantasy
+        # 'plays' in first personnel
+    # 25 - 60, Various Artists - Great Jazz Reeds
+        # 'add' in first personnel
+    # 26 - 6, Fletcher Henderson And His Orchestra
+        # 'omit' in first personnel
+    # 33 - 5, 33, 34, 54
+        # all use 'plays' shorthand after first personnel
