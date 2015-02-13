@@ -24,16 +24,20 @@ import printing
 
 BASE_URL = "http://jazzdisco.org/"
 
-def make_soup(url):
+def make_soup(): #url):
     """
     Recieve a url as input, access the url with requests, and return a
     BeautifulSoup object.
     """
-    r = requests.get(url)
-    data = r.text
-    return BeautifulSoup(data)
+    # r = requests.get(url) put back in to work from online
+    # data = r.text
+    # return BeautifulSoup(data)
+    # Use the following block to read local html:
+    with open("dizzy-gillespie.html") as f: # cannonball-adderley.html  dexter-gordon.html  keith-jarrett.html
+        data = f.read()
+        return BeautifulSoup(data)
 
-def get_category_links(url):
+def get_category_links(): #url):
     """
     Recieve a url as input, call make_soup() with that url, and return a list
     of urls that each lead to an artist's recording catalog page.
@@ -45,6 +49,7 @@ def get_category_links(url):
     return category_links
 
 
+
 class ArtistCatalog():
     def __init__(self, artist_url):
         """
@@ -52,7 +57,7 @@ class ArtistCatalog():
         catalog data as well as a list of strings, each representing
         one album's markup.
         """
-        self.soup = make_soup(artist_url)
+        self.soup = make_soup() #artist_url)
         self.catalog_soup = self.soup.find(id="catalog-data")
         self.string_markup = str(self.catalog_soup).split("<h3>")
 
@@ -115,8 +120,9 @@ class Album():
         processed dict of the album's personnel.
         """
         process_instance = processpersonnel.ProcessPersonnel(personnel)
-        processed_personnel = process_instance.process_personnel_strings()
-        self.album_dict = processed_personnel
+        # processed_personnel = process_instance.process_personnel_strings()
+        # self.album_dict = processed_personnel
+        process_instance.album_personnel()
 
     def find_parent_tag(self):
         """
@@ -216,23 +222,23 @@ class Album():
         """
         personnel = self.extract_personnel_strings()
         self.process_personnel(personnel)
-        self.find_parent_tag()
-        self.find_extra_session_info()
-        self.set_sibling_limit()
-        self.assign_album_title_to_dict()
-        self.assign_date_location_to_dict()
-        self.assign_track_info_to_dict()
+        # self.find_parent_tag()
+        # self.find_extra_session_info()
+        # self.set_sibling_limit()
+        # self.assign_album_title_to_dict()
+        # self.assign_date_location_to_dict()
+        # self.assign_track_info_to_dict()
 
 
 # Temporary Instantiation Tests:
-category_links = get_category_links(BASE_URL)
-test_page = category_links[0] # Cannonball catalog is 0 (33, Jarret)
+# category_links = get_category_links() #BASE_URL)  currently set up to read local html
+test_page = make_soup()#  category_links[25] # Cannonball catalog is 0 (33, Jarret)
 catalog = ArtistCatalog(test_page)
 
 # Find Album Index:
-# print catalog.find_album_number("Keith Jarrett - The Impulse Years, 1973-1974")
+# print catalog.find_album_number("Fletcher Henderson And His Orchestra")
 
-string_markup = catalog.string_markup[5]
+string_markup = catalog.string_markup[2]
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -259,11 +265,12 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 cannonball_album.build_album_dict()
 
-printing.print_album_attributes(cannonball_album.album_dict)
+# printing.print_album_attributes(cannonball_album.album_dict)
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
 # To Do:
+    # make sure oddpersonnel module can deal with integers in name or track
     # non-critical: rewrite print functions using dict-based string formatting
     # may eventually need to deal with track-info shorthand
         # ex: "1, 4/7" - the backslash implies "1, 4,5,6,7"

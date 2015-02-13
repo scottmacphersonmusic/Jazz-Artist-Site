@@ -22,7 +22,11 @@ def clean_extra_session_info(info):
     return info
 
 span_tags = [('<span class="same">', ': </span>same session'),
-             ('<span class="same">', ': </span>same personnel')
+             ('<span class="same">', ': </span>same personnel'),
+             ('<span class="same">', ': </span> add'),
+             ('<span class="same">', ': </span> omit'),
+             ('<span class="same">', 'plays'),
+             ('<span class="same">', 'replaces')
 ]
 
 class ProcessPersonnel():
@@ -240,13 +244,20 @@ class ProcessPersonnel():
 
     def clean_first_session(self, session):
         for item in span_tags:
-            if item[0] in session and item[1] in session:
-                bingo = copy.deepcopy(session)
-                bingo = bingo.lstrip(item[0])
-                print bingo.split(item[1])
+            if item[0] in session \
+            and item[1] in session \
+            and "span" in item[1]:
+                personnel = session.lstrip(item[0])
+                print "personnel after lstrip(): ", personnel, "\n"
+                personnel = personnel.split(item[1])
+                print "personnel after .split(): "
+                print "[0] ", personnel[0]
+                print "[1] ", personnel[1], "\n"
+            elif item[0] in session \
+            and item[1] in session:
+                print "We're looking at a either 'plays' or 'replaces'!"
 
-
-    def new_attempt(self):
+    def album_personnel(self):
         for session in self.personnel:
             if self.filter_keywords(session):
                 print self.convert_to_dicts(session), "\n"
@@ -257,22 +268,23 @@ class ProcessPersonnel():
 # make a list full of tuples with common markup that will be encountered
 # make a function for the first session in case it has span tags
     # make a seperate function(/s) to deal with keywords that can be applied to the first session if need be
+# figure out how to use local copy of artist catalog page html instead of internet
 
 # Albums to test against:
     # 0 - 1, Kenny Clarke - Bohemia After Dark
         # generic album
     # 0 - 5, Julian "Cannonball" Adderley
-        # 'same session' in initial personnel
+        # 'same session' in first personnel
         # 'replaces' in later personnel
     # 0 - 8, Sarah Vaughan In The Land Of Hi-Fi
-        # 'same personnel' in initial and subsequent personnel
+        # 'same personnel' in first and subsequent personnel
     # 0 - 22, The Complete Columbia Recordings Of Miles Davis With John Coltrane
         # 'add' in 3rd personnel
         # 'replaces' in 5th
     # 0 - 29, Various Artists - The Sound Of Big Band Jazz In Hi-Fi!
-        # 'same' and 'replaces' in initial personnel
+        # 'same' and 'replaces' in first personnel
     # 0 - 78, Cannonball Adderley - Alabama/Africa
-        # 'same' and 'add' in initial personnel
+        # 'same' and 'add' in first personnel
     # 0 - 84, Nancy Wilson/Cannonball Adderley
         # 'omit' in 2nd
     # 25 - 2, Teddy Hill - I'm Happy, Darling, Dancing With You / Blue Rhythm Fantasy
