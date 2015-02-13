@@ -30,6 +30,7 @@ def make_soup(): #url):
     BeautifulSoup object.
     """
     # r = requests.get(url) put back in to work from online
+
     # data = r.text
     # return BeautifulSoup(data)
     # Use the following block to read local html:
@@ -266,6 +267,7 @@ cannonball_album = Album(string_markup, catalog_soup)
 cannonball_album.build_album_dict()
 
 # printing.print_album_attributes(cannonball_album.album_dict)
+
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
