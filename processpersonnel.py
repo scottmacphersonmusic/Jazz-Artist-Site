@@ -21,6 +21,10 @@ def clean_extra_session_info(info):
         info = info.rstrip("\n")
     return info
 
+span_tags = [('<span class="same">', ': </span>same session'),
+             ('<span class="same">', ': </span>same personnel')
+]
+
 class ProcessPersonnel():
     def __init__(self, personnel):
         self.personnel = personnel
@@ -219,6 +223,40 @@ class ProcessPersonnel():
                 processed_personnel[item] = self.extra_info[item]
         return processed_personnel
 
+#    #    #    #    #    #    #    #    #    #    #    #    #    #    #    #    #
+
+    def filter_keywords(self, session):
+        if "same" in session \
+        or "add" in session \
+        or "omit" in session \
+        or "plays" in session \
+        or "replaces" in session:
+            return False
+        else:
+            return True
+
+    def convert_to_dicts(self, session):
+        return personnelparser.album_artists(session)
+
+    def clean_first_session(self, session):
+        for item in span_tags:
+            if item[0] in session and item[1] in session:
+                bingo = copy.deepcopy(session)
+                bingo = bingo.lstrip(item[0])
+                print bingo.split(item[1])
+
+
+    def new_attempt(self):
+        for session in self.personnel:
+            if self.filter_keywords(session):
+                print self.convert_to_dicts(session), "\n"
+            else:
+                # print span_tags, type(span_tags), "\n"
+                self.clean_first_session(session), "\n"
+
+# make a list full of tuples with common markup that will be encountered
+# make a function for the first session in case it has span tags
+    # make a seperate function(/s) to deal with keywords that can be applied to the first session if need be
 
 # Albums to test against:
     # 0 - 1, Kenny Clarke - Bohemia After Dark
