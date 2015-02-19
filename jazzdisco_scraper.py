@@ -34,7 +34,7 @@ def make_soup(): #url):
     # data = r.text
     # return BeautifulSoup(data)
     # Use the following block to read local html:
-    with open("dizzy-gillespie.html") as f: # cannonball-adderley.html  dexter-gordon.html  keith-jarrett.html
+    with open("keith-jarrett.html") as f: # cannonball-adderley.html  dizzy-gillespie.html  dexter-gordon.html
         data = f.read()
         return BeautifulSoup(data)
 
@@ -237,9 +237,9 @@ test_page = make_soup()#  category_links[25] # Cannonball catalog is 0 (33, Jarr
 catalog = ArtistCatalog(test_page)
 
 # Find Album Index:
-# print catalog.find_album_number("Fletcher Henderson And His Orchestra")
+# print catalog.find_album_number("Cannonball Adderley, Buddy Collette")
 
-string_markup = catalog.string_markup[2]
+string_markup = catalog.string_markup[54]
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 

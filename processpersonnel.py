@@ -1,6 +1,7 @@
 """
 Recieve a list of personnel strings by session for a given album. Return a
-dictionary of fully processed personnel.
+dictionary of fully processed personnel as well as any additional album
+information.
 """
 import personnelparser
 import replaces
@@ -23,8 +24,8 @@ def clean_extra_session_info(info):
 
 span_tags = [('<span class="same">', ': </span>same session'),
              ('<span class="same">', ': </span>same personnel'),
-             ('<span class="same">', ': </span> add'),
-             ('<span class="same">', ': </span> omit'),
+             ('<span class="same">', ': </span>add'),
+             ('<span class="same">', ': </span>omit'),
              ('<span class="same">', 'plays'),
              ('<span class="same">', 'replaces')
 ]
@@ -34,6 +35,68 @@ class ProcessPersonnel():
         self.personnel = personnel
         self.extra_info = {}
 
+    def filter_keywords(self, session):
+        if "same" in session \
+        or "add" in session \
+        or "omit" in session \
+        or "plays" in session \
+        or "replaces" in session:
+            return True
+        else:
+            return False
+
+    def convert_to_dicts(self, session):
+        return personnelparser.album_artists(session)
+
+    def add(self, previous_personnel, modifier):
+        added_artist = modifier.lstrip("add ") # will this need to deal with more than one artist?
+        added_artist_dict = self.convert_to_dicts(added_artist)
+        modified_personnel = previous_personnel
+        modified_personnel.append(added_artist_dict)
+        return modified_personnel
+
+    def omit(self, previous_personnel, modifier):
+        target = modifier.lstrip("omit ") # will this need to deal with more than one artist?
+        modified_personnel = [artist for artist
+                              in previous_personnel
+                              if target not in artist.values()]
+        return modified_personnel
+
+    def replaces(self, previous_personnel, modifier):
+        rep_instance = replaces.ReplacePersonnel(previous_personnel, modifier)
+        modified_personnel = rep_instance.build_replacement_personnel()
+        return modified_personnel
+
+    def plays(self, previous_personnel, modifier):
+        split = modifier.split("plays")
+        l_name, inst = split[0].rstrip(), split[1].lstrip()
+        for artist in previous_personnel:
+            if l_name in artist.values():
+                target = artist
+                previous_personnel.remove(artist)
+        name = [(n, target[n]) for n in target if 'name' in n]
+        sorted_name = sorted(name)
+        temp = ""
+        for name in sorted_name:
+            temp += name[1] + " "
+        temp += inst
+        temp_dict = self.convert_to_dicts(temp)
+        modified_personnel = previous_personnel
+        modified_personnel.append(temp_dict)
+        return modified_personnel
+        
+    def apply_modifier(self, previous_personnel, modifier):
+        if "add" in modifier:
+            return self.add(previous_personnel, modifier)
+        elif "omit" in modifier:
+            return self.omit(previous_personnel, modifier)
+        elif "replaces" in modifier:
+            return self.replaces(previous_personnel, modifier)
+        elif "plays" in modifier:
+            return self.plays(previous_personnel, modifier)
+        elif "same" in modifier:
+            return previous_personnel
+
     def assign_and_remove_alternate_issue_info(self, personnel):
         album_info = []
         for string in personnel:
@@ -42,228 +105,56 @@ class ProcessPersonnel():
                 album_info.append(clean_string)
                 personnel.remove(string)
         index = 1
+        extra_info = {}
         for string in album_info:
             key = "alt_album_info_" + str(index)
-            self.extra_info[key] = string
+            extra_info[key] = string
             index += 1
-        return personnel
-
-    def remove_markup_from_first_string(self, personnel):
-        first_string = personnel[0]
-        if '<span class="same">' \
-        and ': </span>same session' \
-        in first_string:
-            remove_left = first_string.lstrip('<span class="same">')
-            remove_right = remove_left.rstrip(': </span>same session')
-            personnel[0] = remove_right
-        elif '<span class="same">' \
-        and ': </span>same personnel' \
-        in first_string:
-            remove_left = first_string.lstrip('<span class="same">')
-            remove_right = remove_left.rstrip(': </span>same personnel')
-            personnel[0] = remove_right
-        # use replaces module
-        elif '<span class="same">' and 'replaces' in first_string:
-            split = first_string.split(': </span>')
-            original = split[0].lstrip('<span class="same">')
-            original_dict = personnelparser.album_artists(original)
-            rep_instance = replaces.ReplacePersonnel(original_dict, split[1])
-            personnel[0] = rep_instance.build_replacement_personnel()
-        elif '<span class="same">' and 'add' in first_string:
-            split = first_string.split(': </span>')
-            original = split[0].lstrip('<span class="same">')
-            original_dict = personnelparser.album_artists(original)
-            add =  personnelparser.album_artists(split[1].lstrip('add '))
-            for d in add:
-                original_dict.append(d)
-            personnel[0] = original_dict
-        elif 'same' in first_string:
-            print "ERROR: unrecognized version of 'same' shorthand"
-        return personnel
-
-    def original_personnel_to_dict(self, personnel):
-        """
-        Use the personnelparser module to convert the first/original personnel
-        string into an artist dictionary.
-        """
-        if type(personnel[0]) == str:
-            personnel[0] = personnelparser.album_artists(personnel[0])
-        return personnel
-
-    def standard_personnel_to_dict(self, personnel):
-        """
-        Use the personnelparser module to convert any standard personnel
-        strings (i.e. they don't have trigger words like 'add', 'same'
-        or 'replaces') into dicts.
-        """
-        for p in personnel[1:]:
-            i = personnel.index(p)
-            if 'add' not in p \
-            and 'same' not in p \
-            and 'replaces' not in p \
-            and 'omit' not in p \
-            and 'plays' not in p:
-                personnel[i] = personnelparser.album_artists(p)
-            return personnel
-
-    def expand_plays(self, personnel):
-        """
-        Identify and modify any personnel strings using the keyword
-        'plays'.
-        """
-        if len(personnel) > 1:
-            for p in personnel[1:]:
-                if "plays" in p:
-                    index = personnel.index(p)
-                    previous_personnel = copy.deepcopy(personnel[index - 1])
-                    split = p.split("plays")
-                    l_name, inst = split[0].rstrip(), split[1].lstrip()
-                    for d in previous_personnel:
-                        if l_name in d.values():
-                            target = d
-                            previous_personnel.remove(d)
-                    name = [(n, target[n]) for n in target if 'name' in n]
-                    sorted_name = sorted(name)
-                    temp = ""
-                    for name in sorted_name:
-                        temp += name[1] + " "
-                    temp += inst
-                    temp_dict = personnelparser.album_artists(temp)[0]
-                    revised_personnel = previous_personnel
-                    revised_personnel.append(temp_dict)
-                    personnel[index] = revised_personnel
-                    return personnel
-        return personnel
-
-    def expand_same_personnel(self, personnel):
-        """
-        Substitue the original personnel for 'same personnel' shorthand and
-        return the resulting array.
-        """
-        if len(personnel) > 1:
-            for p in personnel[1:]:
-                index = personnel.index(p)
-                if "same personnel" in p:
-                    personnel[index] = personnel[index - 1]
-        return personnel
-
-    def expand_add(self, personnel):
-        for p in personnel[1:]:
-            i = personnel.index(p)
-            if type(p) == str and 'add' in p:
-                clean_string = p.lstrip("add ")
-                artist_dicts = personnelparser.album_artists(clean_string)
-                base_personnel = copy.deepcopy(personnel[i - 1])
-                add_personnel = []
-                for d in base_personnel:
-                    add_personnel.append(d)
-                for d in artist_dicts:
-                    add_personnel.append(d)
-                personnel[i] = add_personnel
-        return personnel
-
-    def expand_replaces(self, personnel):
-        """
-        If necessary, substitute the indicated artist/s into the original
-        personnel dict and return an array of dicts. Otherwise return the
-        original personnel.
-        """
-        for p in personnel[1:]:
-            if "replaces" in p:
-                i = personnel.index(p)
-                original_personnel = copy.deepcopy(personnel[i - 1])
-                rep_instance = replaces.ReplacePersonnel(original_personnel, p)
-                build_personnel = rep_instance.build_replacement_personnel()
-                rep_personnel = [item for item in build_personnel]
-                personnel[i] = rep_personnel
-        return personnel
-
-    def omit_artists(self, personnel): # make sure this can handle 2+ omissions in same personnel string
-        for item in personnel:
-            if 'omit' in item:
-                target = item.lstrip('omit ')
-                index = personnel.index(item)
-                original = copy.deepcopy(personnel[index - 1])
-                for d in original:
-                    if target in d.values():
-                        original.remove(d)
-                personnel[index] = original
-        return personnel
-
-    def remaining_strings_to_dict(self, personnel):
-        for item in personnel:
-            if type(item) == str:
-                index = personnel.index(item)
-                personnel[index] = personnelparser.album_artists(personnel[index])
-        return personnel
-
-    def process_personnel_strings(self):
-        """
-        Call the functions involved in extracting and ammending personnel
-        strings and assign the resulting lists of artist dicts as values to
-        self.album_dict.
-        """
-        assign_alt_issue_info = self.assign_and_remove_alternate_issue_info(
-            self.personnel)
-        remove_markup = self.remove_markup_from_first_string(
-            assign_alt_issue_info)
-        original_to_dict = self.original_personnel_to_dict(remove_markup)
-        standard_personnel = self.standard_personnel_to_dict(original_to_dict)
-        expand_plays = self.expand_plays(standard_personnel)
-        expand_same_personnel = self.expand_same_personnel(expand_plays)
-        expand_add = self.expand_add(expand_same_personnel)
-        expand_replaces = self.expand_replaces(expand_add)
-        omit_artists = self.omit_artists(expand_replaces)
-        convert_strings = self.remaining_strings_to_dict(omit_artists)
-        #       #       #       #       #       #       #       #
-        processed_personnel = {}
-        key_counter = 1
-        for l in convert_strings:
-            key = "personnel_" + str(key_counter)
-            processed_personnel[key] = l
-            key_counter += 1
-        if len(self.extra_info) >= 1:
-            for item in self.extra_info:
-                processed_personnel[item] = self.extra_info[item]
-        return processed_personnel
-
-#    #    #    #    #    #    #    #    #    #    #    #    #    #    #    #    #
-
-    def filter_keywords(self, session):
-        if "same" in session \
-        or "add" in session \
-        or "omit" in session \
-        or "plays" in session \
-        or "replaces" in session:
-            return False
-        else:
-            return True
-
-    def convert_to_dicts(self, session):
-        return personnelparser.album_artists(session)
-
+        return personnel, extra_info
+        
     def clean_first_session(self, session):
+        # print session, "\n"*2
         for item in span_tags:
             if item[0] in session \
             and item[1] in session \
             and "span" in item[1]:
                 personnel = session.lstrip(item[0])
-                print "personnel after lstrip(): ", personnel, "\n"
                 personnel = personnel.split(item[1])
-                print "personnel after .split(): "
-                print "[0] ", personnel[0]
-                print "[1] ", personnel[1], "\n"
-            elif item[0] in session \
-            and item[1] in session:
-                print "We're looking at a either 'plays' or 'replaces'!"
+                personnel = self.convert_to_dicts(personnel[0])
+                return personnel
+            if item[0] in session \
+            and item[1] in session:   # the following block looks redundant - may be a better way?
+                print "We're looking at either 'plays' or 'replaces'!"
+                personnel = session.lstrip(item[0])
+                personnel = personnel.split(": </span>")
+                personnel = self.convert_to_dicts(personnel[0])
+                return personnel
+        return self.convert_to_dicts(session)
 
     def album_personnel(self):
-        for session in self.personnel:
+        # will want to treat extra album info (beginning w/**)
+        print "original personnel strings:"
+        for item in self.personnel:
+            print item, "\n"
+        personnel, extra_info = self.assign_and_remove_alternate_issue_info(self.personnel)
+        album_personnel = [self.clean_first_session(personnel[0])]
+        #probably need to make sure there are more than one personnel string
+        for session in personnel[1:]:
             if self.filter_keywords(session):
-                print self.convert_to_dicts(session), "\n"
+                previous_personnel = copy.deepcopy(album_personnel[-1])
+                album_personnel.append(self.apply_modifier(previous_personnel, session))
             else:
-                # print span_tags, type(span_tags), "\n"
-                self.clean_first_session(session), "\n"
+                album_personnel.append(self.convert_to_dicts(session))
+        print "\nalbum_personnel:"
+        for item in album_personnel:
+            print type(item)
+            for artist in item:
+                print artist
+            print
+        print extra_info
+        
+                
+                
 
 # make a list full of tuples with common markup that will be encountered
 # make a function for the first session in case it has span tags
@@ -295,3 +186,7 @@ class ProcessPersonnel():
         # 'omit' in first personnel
     # 33 - 5, 33, 34, 54
         # all use 'plays' shorthand after first personnel
+
+
+# BOOKMARK check to see if there are cases where 'add' or 'omit' have multiple artists to deal with
+    # for that matter - 'replaces' or 'plays'?
