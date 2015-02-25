@@ -68,10 +68,13 @@ class ProcessPersonnel():
         Return a complete session personnel dict less the artist indicated by
         the 'omit' keyword.
         """
-        target = modifier.lstrip("omit ") # will this need to deal with more than one artist?
-        modified_personnel = [artist for artist
-                              in previous_personnel
-                              if target not in artist.values()]
+        targets = modifier.lstrip("omit ")
+        targets = targets.split(", ")
+        modified_personnel = previous_personnel
+        for name in targets:
+            for artist_dict in modified_personnel:
+                if name in artist_dict.values():
+                    modified_personnel.remove(artist_dict)
         return modified_personnel
 
     def replaces(self, previous_personnel, modifier):
@@ -203,16 +206,16 @@ class ProcessPersonnel():
         # 'omit' in 2nd
     # 25 - 2, Teddy Hill - I'm Happy, Darling, Dancing With You / Blue Rhythm Fantasy
         # 'plays' in first personnel
-    # 25 - 59, The Metronome All-Star Bands                                        !!!!!
+    # 25 - 59, The Metronome All-Star Bands
         # multiple artist 'omit' keyword in second personnel string
     # 25 - 60, Various Artists - Great Jazz Reeds
         # 'add' in first personnel
     # 26 - 6, Fletcher Henderson And His Orchestra
         # 'omit' in first personnel
-    # 26 - 165, Dexter Gordon Quartet - The Apartment                              !!!!!
+    # 26 - 165, Dexter Gordon Quartet - The Apartment
         # multiple artist 'add' keyword in second personnel string
     # 33 - 5, 33, 34, 54
         # all use 'plays' shorthand after first personnel
 
 # To-Do:
-    # modify add() and omit() to handle multiple artists
+    #
