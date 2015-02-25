@@ -33,7 +33,6 @@ span_tags = [('<span class="same">', ': </span>same session'),
 class ProcessPersonnel():
     def __init__(self, personnel):
         self.personnel = personnel
-        self.extra_info = {}
 
     def filter_keywords(self, session):
         if "same" in session \
@@ -46,16 +45,29 @@ class ProcessPersonnel():
             return False
 
     def convert_to_dicts(self, session):
+        """
+        Use the personnelparser module to convert a given session's personnel
+        string into a dictionary.
+        """
         return personnelparser.album_artists(session)
 
     def add(self, previous_personnel, modifier):
-        added_artist = modifier.lstrip("add ") # will this need to deal with more than one artist?
-        added_artist_dict = self.convert_to_dicts(added_artist)
+        """
+        Expand a session's personnel string containing the 'add' keyword into
+        a complete personnel dict.
+        """
+        added_artists = modifier.lstrip("add ")
+        added_artist_dicts = self.convert_to_dicts(added_artists)
         modified_personnel = previous_personnel
-        modified_personnel.append(added_artist_dict)
+        for artist in added_artist_dicts:
+            modified_personnel.append(artist)
         return modified_personnel
 
     def omit(self, previous_personnel, modifier):
+        """
+        Return a complete session personnel dict less the artist indicated by
+        the 'omit' keyword.
+        """
         target = modifier.lstrip("omit ") # will this need to deal with more than one artist?
         modified_personnel = [artist for artist
                               in previous_personnel
@@ -63,11 +75,19 @@ class ProcessPersonnel():
         return modified_personnel
 
     def replaces(self, previous_personnel, modifier):
+        """
+        Return a complete session personnel dict modified according to the
+        'replaces' keyword.
+        """
         rep_instance = replaces.ReplacePersonnel(previous_personnel, modifier)
         modified_personnel = rep_instance.build_replacement_personnel()
         return modified_personnel
 
     def plays(self, previous_personnel, modifier):
+        """
+        Return a complete session personnel dict with modified instrumentation
+        for the artist indicated by the 'plays' keyword.
+        """
         split = modifier.split("plays")
         l_name, inst = split[0].rstrip(), split[1].lstrip()
         for artist in previous_personnel:
@@ -84,8 +104,13 @@ class ProcessPersonnel():
         modified_personnel = previous_personnel
         modified_personnel.append(temp_dict)
         return modified_personnel
-        
+
     def apply_modifier(self, previous_personnel, modifier):
+        """
+        Determine which keyword is being used in a given session's personnel
+        string and call the corresponding method. Return a complete, modified
+        personnel dict.
+        """
         if "add" in modifier:
             return self.add(previous_personnel, modifier)
         elif "omit" in modifier:
@@ -97,69 +122,67 @@ class ProcessPersonnel():
         elif "same" in modifier:
             return previous_personnel
 
-    def assign_and_remove_alternate_issue_info(self, personnel):
+    def extract_alternate_album_info(self, personnel):
+        """
+        Extract any extra album info that may have been scraped along with the
+        personnel strings and return the personnel and extra info isolated from
+        one another.
+        """
         album_info = []
         for string in personnel:
             if "**" in string:
                 clean_string = clean_extra_session_info(string)
                 album_info.append(clean_string)
                 personnel.remove(string)
-        index = 1
-        extra_info = {}
-        for string in album_info:
-            key = "alt_album_info_" + str(index)
-            extra_info[key] = string
-            index += 1
-        return personnel, extra_info
-        
+        return personnel, album_info
+
     def clean_first_session(self, session):
-        # print session, "\n"*2
+        """
+        Remove any markup if present and return a complete personnel dict for
+        the first session.
+        """
         for item in span_tags:
             if item[0] in session \
-            and item[1] in session \
-            and "span" in item[1]:
-                personnel = session.lstrip(item[0])
-                personnel = personnel.split(item[1])
-                personnel = self.convert_to_dicts(personnel[0])
-                return personnel
-            if item[0] in session \
-            and item[1] in session:   # the following block looks redundant - may be a better way?
-                print "We're looking at either 'plays' or 'replaces'!"
+            and item[1] in session:
                 personnel = session.lstrip(item[0])
                 personnel = personnel.split(": </span>")
                 personnel = self.convert_to_dicts(personnel[0])
                 return personnel
         return self.convert_to_dicts(session)
 
+    def album_personnel_to_dict(self, album_personnel):
+        """
+        Recieve a list of session personnel dicts and return a dict where each
+        of those is a value.
+        """
+        session_count = 1
+        album_personnel_dict = {}
+        for session in album_personnel:
+            key = "personnel_" + str(session_count)
+            album_personnel_dict[key] = session
+            session_count += 1
+        return album_personnel_dict
+
     def album_personnel(self):
-        # will want to treat extra album info (beginning w/**)
-        print "original personnel strings:"
-        for item in self.personnel:
-            print item, "\n"
-        personnel, extra_info = self.assign_and_remove_alternate_issue_info(self.personnel)
+        """
+        Use the above methods (where necessary) to produce a dict for each
+        session's complete personnel. Also produce a dict for alternate album
+        info if present.  Return a dict where each of the session dicts is a
+        value.
+        """
+        personnel, album_info = self.extract_alternate_album_info(self.personnel)
         album_personnel = [self.clean_first_session(personnel[0])]
-        #probably need to make sure there are more than one personnel string
         for session in personnel[1:]:
             if self.filter_keywords(session):
                 previous_personnel = copy.deepcopy(album_personnel[-1])
                 album_personnel.append(self.apply_modifier(previous_personnel, session))
             else:
                 album_personnel.append(self.convert_to_dicts(session))
-        print "\nalbum_personnel:"
-        for item in album_personnel:
-            print type(item)
-            for artist in item:
-                print artist
-            print
-        print extra_info
-        
-                
-                
+        album_personnel = self.album_personnel_to_dict(album_personnel)
+        if len(album_info) == 1:
+            album_personnel["alt_album_info_1"] = album_info[0]
+        return album_personnel
 
-# make a list full of tuples with common markup that will be encountered
-# make a function for the first session in case it has span tags
-    # make a seperate function(/s) to deal with keywords that can be applied to the first session if need be
-# figure out how to use local copy of artist catalog page html instead of internet
 
 # Albums to test against:
     # 0 - 1, Kenny Clarke - Bohemia After Dark
@@ -180,13 +203,16 @@ class ProcessPersonnel():
         # 'omit' in 2nd
     # 25 - 2, Teddy Hill - I'm Happy, Darling, Dancing With You / Blue Rhythm Fantasy
         # 'plays' in first personnel
+    # 25 - 59, The Metronome All-Star Bands                                        !!!!!
+        # multiple artist 'omit' keyword in second personnel string
     # 25 - 60, Various Artists - Great Jazz Reeds
         # 'add' in first personnel
     # 26 - 6, Fletcher Henderson And His Orchestra
         # 'omit' in first personnel
+    # 26 - 165, Dexter Gordon Quartet - The Apartment                              !!!!!
+        # multiple artist 'add' keyword in second personnel string
     # 33 - 5, 33, 34, 54
         # all use 'plays' shorthand after first personnel
 
-
-# BOOKMARK check to see if there are cases where 'add' or 'omit' have multiple artists to deal with
-    # for that matter - 'replaces' or 'plays'?
+# To-Do:
+    # modify add() and omit() to handle multiple artists

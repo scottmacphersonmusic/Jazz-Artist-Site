@@ -34,7 +34,7 @@ def make_soup(): #url):
     # data = r.text
     # return BeautifulSoup(data)
     # Use the following block to read local html:
-    with open("keith-jarrett.html") as f: # cannonball-adderley.html  dizzy-gillespie.html  dexter-gordon.html
+    with open("dexter-gordon.html") as f: #  dizzy-gillespie.html  cannonball-adderley.html  keith-jarrett.html
         data = f.read()
         return BeautifulSoup(data)
 
@@ -117,13 +117,12 @@ class Album():
 
     def process_personnel(self, personnel):
         """
-        Use the processpersonnel module to create a fully
-        processed dict of the album's personnel.
+        Use the processpersonnel module to create a fully processed dict of
+        the album's personnel and any extra album info if present.
         """
         process_instance = processpersonnel.ProcessPersonnel(personnel)
-        # processed_personnel = process_instance.process_personnel_strings()
-        # self.album_dict = processed_personnel
-        process_instance.album_personnel()
+        album_personnel = process_instance.album_personnel()
+        self.album_dict =  album_personnel
 
     def find_parent_tag(self):
         """
@@ -223,12 +222,12 @@ class Album():
         """
         personnel = self.extract_personnel_strings()
         self.process_personnel(personnel)
-        # self.find_parent_tag()
-        # self.find_extra_session_info()
-        # self.set_sibling_limit()
-        # self.assign_album_title_to_dict()
-        # self.assign_date_location_to_dict()
-        # self.assign_track_info_to_dict()
+        self.find_parent_tag()
+        self.find_extra_session_info()
+        self.set_sibling_limit()
+        self.assign_album_title_to_dict()
+        self.assign_date_location_to_dict()
+        self.assign_track_info_to_dict()
 
 
 # Temporary Instantiation Tests:
@@ -237,9 +236,9 @@ test_page = make_soup()#  category_links[25] # Cannonball catalog is 0 (33, Jarr
 catalog = ArtistCatalog(test_page)
 
 # Find Album Index:
-# print catalog.find_album_number("Cannonball Adderley, Buddy Collette")
+# print catalog.find_album_number("Dexter Gordon Quartet - The Apartment")
 
-string_markup = catalog.string_markup[54]
+string_markup = catalog.string_markup[165]
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -266,13 +265,15 @@ cannonball_album = Album(string_markup, catalog_soup)
 
 cannonball_album.build_album_dict()
 
-# printing.print_album_attributes(cannonball_album.album_dict)
+printing.print_album_attributes(cannonball_album.album_dict)
 
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
 # To Do:
     # make sure oddpersonnel module can deal with integers in name or track
+    # clean up main module to reflect that it is getting the html from local files
+    # figure out how to access files in a subdirectory.  sys module?
     # non-critical: rewrite print functions using dict-based string formatting
     # may eventually need to deal with track-info shorthand
         # ex: "1, 4/7" - the backslash implies "1, 4,5,6,7"

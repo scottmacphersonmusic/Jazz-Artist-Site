@@ -56,11 +56,12 @@ def print_alt_issue_info(album_dict):
     keys = album_dict.keys()
     alt_issue_info = [word for word in keys if "alt_album_info_" in word]
     for key in alt_issue_info:
-        print album_dict[key]
+        print album_dict[key]   # this isn't working correctly - fix it!
     print "\n"
 
 def print_album_attributes(album_dict):
     """Print album_dict attributes to the console in human readable form"""
+    # print album_dict
     t = "\t"
     keys = album_dict.keys()
     date_loc = [word for word in keys if "date" in word]
