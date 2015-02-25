@@ -2,7 +2,6 @@
 This module identifies personnel strings that have uncommon personnel within
 them and parses them accordingly.
 """
-# take initial_artist_arrays from personnelparser and return the artist arrays less any suspiciously odd personnel
 
 common_ensembles = ['Machito And His Orchestra',
                     'Oliver Nelson Orchestra',
@@ -75,27 +74,35 @@ class ProperEnsemble():
         self.artists = artists
 
     def has_common_ensemble(self, artist):
+        """
+        Recieve one artist substring from a given session's personnel and return
+        the common ensemble name isolated from any standard-formatted artists
+        that may have been included in the artist substring. Otherwise return
+        None.
+        """
         joined_artist = ""
         for i in artist:
             joined_artist += i + ' '
-        for e in common_ensembles:
-            if e in joined_artist:
-                split_ensemble = e.split()
-                # print 'artist: ', artist
-                # print 'split_ensemble: ', split_ensemble
+        for ensemble in common_ensembles:
+            if ensemble in joined_artist:
+                split_ensemble = ensemble.split()
                 target = [artist.index(word) for word in artist
                           if split_ensemble[-1] in word][0] + 1
-                proper_ensemble = e
+                proper_ensemble = ensemble
                 standard_personnel = artist[target:]
                 return proper_ensemble, standard_personnel
 
     def filter_common_ensembles(self):
-        for a in self.artists:
-            # print 'running has_common_ensemble(): ', a
-            if self.has_common_ensemble(a) != None:
-                # print 'branch a'
-                proper_ensemble, standard_personnel = self.has_common_ensemble(a)
-                index = self.artists.index(a)
+        """
+        If there are any common ensemble names present in an artist substring
+        of a given session's personnel, return a tuple with the common ensemble
+        isolated from the rest of the artists. Otherwise return the personnel
+        as it was recieved.
+        """
+        for artist in self.artists:
+            if self.has_common_ensemble(artist) != None:
+                proper_ensemble, standard_personnel = self.has_common_ensemble(artist)
+                index = self.artists.index(artist)
                 self.artists[index] = standard_personnel
                 return proper_ensemble, self.artists
         return self.artists
@@ -106,29 +113,42 @@ class OddPersonnel():
         self.artists = artists
 
     def odd_or_standard(self):
+        """
+        Isolate any artist substrings containing the word 'unidentified' and
+        return a tuple of odd personnel and standard personnel. If no odd
+        personnel are found return None in place of odd personnel in the tuple.
+        """
         odd_personnel = None
-        for a in self.artists:
-            if 'unidentified' in a:
-                odd_personnel = a
+        for artist in self.artists:
+            if 'unidentified' in artist:
+                odd_personnel = artist
                 standard_personnel = [a for a in self.artists if 'unidentified' not in a]
                 return odd_personnel, standard_personnel
         return None, self.artists
 
-# will need to make sure the instruments I'm checking for aren't inside parens
-# also can use the regex number checker from personnelparser to look for either track info or numbers inside p-strings
-
     def isolate_odd_personnel(self, odd_personnel):
+        """
+        Given a list of split words from a given artist substing which is known
+        to contain 'unidentified', isolate any words associated with it from any
+        standard-formatted personnel that may have been included. Return a tuple
+        with of the odd and standard personnel.
+        """
         isolate_odd = []
         for a in odd_personnel:  # will it ever be the case that there is more than one sub-personnel item with 'unidentified'?
             for w in odd_words:
                 if w in a:
                     isolate_odd.append(a)
+                # this is where I'll include an elif to check for digits
                 elif a == isolate_odd[-1]:
                     break
         isolate_standard = odd_personnel[len(isolate_odd):]
         return isolate_odd, isolate_standard
 
     def odd_personnel_to_dict(self, isolate_odd):
+        """
+        Return a dictionary where each word that has been identified as odd
+        personnel is a value.
+        """
         if isolate_odd[-1].endswith(','):
             isolate_odd[-1] = isolate_odd[-1].rstrip(',')
         odd_dict = {}
@@ -138,3 +158,9 @@ class OddPersonnel():
             odd_dict[key] = o
             counter += 1
         return odd_dict
+
+# To-Do:
+    # will need to make sure the instruments I'm checking for aren't inside parens
+    # also can use the regex number checker from personnelparser to look for either track info or numbers inside p-strings
+    # what if an artist sub-string contains more than one common ensemble?
+    # will it ever be the case there is more than one sub-personnel item with 'unidentified'?
