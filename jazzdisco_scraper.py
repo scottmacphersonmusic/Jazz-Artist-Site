@@ -34,7 +34,12 @@ def make_soup(): #url):
     # data = r.text
     # return BeautifulSoup(data)
     # Use the following block to read local html:
-    with open("cannonball-adderley.html") as f: #  dexter-gordon.html dizzy-gillespie.html  keith-jarrett.html
+    with open("cannonball-adderley.html") as f:
+        # dave-brubeck.html
+        # keith-jarrett.html
+        # eric-dolphy.html
+        # dexter-gordon.html
+        # dizzy-gillespie.html
         data = f.read()
         return BeautifulSoup(data)
 
@@ -236,9 +241,9 @@ test_page = make_soup()#  category_links[25] # Cannonball catalog is 0 (33, Jarr
 catalog = ArtistCatalog(test_page)
 
 # Find Album Index:
-# print catalog.find_album_number("Dexter Gordon Quartet - The Apartment")
+# print catalog.find_album_number("Eric Dolphy - Illinois Concert")
 
-string_markup = catalog.string_markup[84]
+string_markup = catalog.string_markup[21]
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
@@ -253,13 +258,6 @@ cannonball_album = Album(string_markup, catalog_soup)
                         # Blockbuster
                 # after string has been split but before it has been assigned to dict:
                 #       make a dict key for 'pseudonym'
-        # Keith Jarret - some albums use 'plays' shorthand in personnel strings
-                # 5, 33, 34, 54
-
-#  BOOKMARK: figure out how to order personnel string processing so the following is solved:
-                # on 34 a 'same' personnel string comes after a 'plays', but 33 and 54 are the other way...
-                # separate out personnel processing to its own module, referenced by jazzdisco_scraper, using personnelparser
-
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
@@ -274,6 +272,7 @@ printing.print_album_attributes(cannonball_album.album_dict)
     # make sure oddpersonnel module can deal with integers in name or track
     # clean up main module to reflect that it is getting the html from local files
     # figure out how to access files in a subdirectory.  sys module?
+    # write a function that searches each html file recursively for text and returns information about where it was found
     # non-critical: rewrite print functions using dict-based string formatting
     # may eventually need to deal with track-info shorthand
         # ex: "1, 4/7" - the backslash implies "1, 4,5,6,7"

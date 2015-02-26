@@ -83,28 +83,14 @@ class AlbumPersonnel():
         all of the standard-formatted personnel.
         """
         odd_instance = oddpersonnel.OddPersonnel(initial_artists)
-        odd, standard = odd_instance.odd_or_standard()
-        if odd == None:
-            artists = initial_artists
-        else:
-            isolate_odd, isolate_standard = odd_instance.isolate_odd_personnel(odd)
-            self.odd.append(odd_instance.odd_personnel_to_dict(isolate_odd))
-            if len(isolate_standard) >= 1:
-                standard.append(isolate_standard)
-            artists = standard
-        proper_instance = oddpersonnel.ProperEnsemble(artists)
-        proper_filtered =  proper_instance.filter_common_ensembles()
-        if type(proper_filtered[0]) == str:
-            counter = len(self.odd) + 1
-            key = 'odd_' + str(counter)
-            self.odd.append({key: proper_filtered[0]})
-            filtered_artists = proper_filtered[1]
-            for artist in filtered_artists:
-                if len(artist) == 0:
-                    filtered_artists.remove(artist)
-        else:
-            filtered_artists = proper_filtered
-        return filtered_artists
+        standard, odd = odd_instance.resolve_odd()
+        if odd != None:
+            self.odd.append(odd)
+        proper_instance = oddpersonnel.ProperEnsemble(standard, len(self.odd))
+        standard, odd = proper_instance.resolve_proper()
+        if odd != None:
+            self.odd.append(odd)
+        return standard
 
     def partition_artist_array(self, artist_array):
         """

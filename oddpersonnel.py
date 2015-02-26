@@ -8,9 +8,12 @@ common_ensembles = ['Machito And His Orchestra',
                     'Orchestra Radio Baden-Baden',
                     'Orchestra Filarmonica Marchigiana',
                     'Radio Symphony Hannover',
+                    "St. John's Assembly",
                     'Cincinnati Symphony Orchestra',
                     'Montreal International Jazz Festival Orchestra',
-                    'Cathedral Choral Society Chorus, Duke Ellington School Of Arts Show Choir, Cathedral Choral Society Orchestra',
+                    'Cathedral Choral Society Chorus',
+                    'Duke Ellington School Of Arts Show Choir',
+                    'Cathedral Choral Society Orchestra',
                     'New York Philharmonic',
                     'Westminster Choir',
                     'Cincinnati Brass Ensemble',
@@ -70,8 +73,9 @@ odd_words = ['unidentified',
 ]
 
 class ProperEnsemble():
-    def __init__(self, artists):
+    def __init__(self, artists, len_odd):
         self.artists = artists
+        self.len_odd = len_odd
 
     def has_common_ensemble(self, artist):
         """
@@ -104,9 +108,20 @@ class ProperEnsemble():
                 proper_ensemble, standard_personnel = self.has_common_ensemble(artist)
                 index = self.artists.index(artist)
                 self.artists[index] = standard_personnel
-                return proper_ensemble, self.artists
-        return self.artists
+                return self.artists, proper_ensemble
+        return self.artists, None
 
+    def resolve_proper(self):
+        standard, odd = self.filter_common_ensembles()
+        if type(odd) == str:
+            key = 'odd_' + str(self.len_odd + 1)
+            odd_dict = {key: odd}
+            return standard, odd_dict
+            # for artist in filtered_artists:
+            #     if len(artist) == 0:
+            #         filtered_artists.remove(artist)
+        else:
+            return standard, odd
 
 class OddPersonnel():
     def __init__(self, artists):
@@ -146,21 +161,51 @@ class OddPersonnel():
 
     def odd_personnel_to_dict(self, isolate_odd):
         """
-        Return a dictionary where each word that has been identified as odd
-        personnel is a value.
+        Concatenate the substrings identified as odd and return a dictionary
+        with the new odd string as a value.
         """
         if isolate_odd[-1].endswith(','):
             isolate_odd[-1] = isolate_odd[-1].rstrip(',')
-        odd_dict = {}
-        counter = 1
-        for o in isolate_odd:
-            key = "odd_" + str(counter)
-            odd_dict[key] = o
-            counter += 1
+        join_odd = ""
+        for word in isolate_odd:
+            join_odd += word + " "
+        odd_dict = {"odd_1": join_odd.rstrip()}
         return odd_dict
 
+    def resolve_odd(self):
+        odd, standard = self.odd_or_standard()
+        if odd == None:
+            return standard, None
+        else:
+            isolate_odd, isolate_standard = self.isolate_odd_personnel(odd)
+            odd_dict = self.odd_personnel_to_dict(isolate_odd)
+            if len(isolate_standard) >= 1:
+                standard.append(isolate_standard)
+            return standard, odd_dict
+
+# Bookmark: refactor seems to be alright but is printing strangely - let's check it out!
+
 # To-Do:
+    # refactor a little bit so personnelparser module doesn't have to do as much
     # will need to make sure the instruments I'm checking for aren't inside parens
     # also can use the regex number checker from personnelparser to look for either track info or numbers inside p-strings
     # what if an artist sub-string contains more than one common ensemble?
     # will it ever be the case there is more than one sub-personnel item with 'unidentified'?
+
+# Example Albums:
+    # Cannonball - 9, 10, Dinah Washington In The Land Of Hi-Fi
+        # 'unidentified' in initial and second personnel (w/'replaces')
+    # Cannonball - 21, Machito And His Orchestra - Kenya-Afro Cuban Jazz
+        # proper ensemble name
+    # Jarret - 16, Keith Jarrett - Restoration Ruin
+        # 'unidentified' followed by tracks in parens
+    # Jarret - 57, Keith Jarrett - In The Light
+        # proper ensemble name in multiple sessions
+    # Jarret - 68, Keith Jarrett - Arbour Zena
+        # proper ensemble followed by instrument in parens
+    # Brubeck - 86, Dave Brubeck - The Gates Of Justice
+        # multiple proper ensembles in one personnel string
+    # Brubeck - 124, Dave Brubeck - To Hope! - A Celebration
+        # multiple proper ensembles in one personnel string
+    # Dolphy - 91, Eric Dolphy - Illinois Concert
+        # multiple proper ensembles having track numbers associated with them

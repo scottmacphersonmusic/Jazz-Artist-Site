@@ -186,7 +186,6 @@ class ProcessPersonnel():
             album_personnel["alt_album_info_1"] = album_info[0]
         return album_personnel
 
-
 # Albums to test against:
     # 0 - 1, Kenny Clarke - Bohemia After Dark
         # generic album
