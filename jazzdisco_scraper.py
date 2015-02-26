@@ -1,14 +1,13 @@
 """
 A content webscraper for www.jazzdisco.org.
 
-BeautifulSoup and requests are used to produce a list of links to traverse and
-scrape artist recording catalog data.
+BeautifulSoup is used to traverse html files scraped from the site that exist
+in a local directory.
 
-The ArtistCatalog class will recieve a url for an artist catalog page as input
-and construct an object that stores a BeautifulSoup object of the catalog's
-content in the attribute catalog_soup. Also will store a list of strings that
-each represent the markup for one album's content in the attribute
-string_markup.
+The ArtistCatalog class will recieve an artist catalog html file as input and
+construct an object that stores a BeautifulSoup object of the catalog's content
+in the attribute catalog_soup. Also will store a list of strings that each
+represent the markup for one album's content in the attribute string_markup.
 
 The Album class will recieve a string containing a given album's content
 markup and a BeautifulSoup object of the artist catalog as input (both from
@@ -17,53 +16,28 @@ containing all the album's data stored in the album_dict attribute.
 """
 
 from bs4 import BeautifulSoup
-import requests
+import os
 import processpersonnel
 import copy
 import printing
 
-BASE_URL = "http://jazzdisco.org/"
-
-def make_soup(): #url):
-    """
-    Recieve a url as input, access the url with requests, and return a
-    BeautifulSoup object.
-    """
-    # r = requests.get(url) put back in to work from online
-
-    # data = r.text
-    # return BeautifulSoup(data)
-    # Use the following block to read local html:
-    with open("cannonball-adderley.html") as f:
-        # dave-brubeck.html
-        # keith-jarrett.html
-        # eric-dolphy.html
-        # dexter-gordon.html
-        # dizzy-gillespie.html
+def make_soup(artist_catalog):
+    """Return a BeautifulSoup object of a given html file."""
+    base_path = "/Users/scottmacpherson/Desktop/Code/" +  \
+                "Jazz Artist Site/site_archive/album_archive"
+    file = os.path.join(base_path, artist_catalog)
+    with open(file) as f:
         data = f.read()
         return BeautifulSoup(data)
 
-def get_category_links(): #url):
-    """
-    Recieve a url as input, call make_soup() with that url, and return a list
-    of urls that each lead to an artist's recording catalog page.
-    """
-    soup = make_soup(url)
-    table = soup.find("table")
-    category_links = [BASE_URL + a.get('href') + 'catalog/' \
-                      for a in table.find_all('a')]
-    return category_links
-
-
 
 class ArtistCatalog():
-    def __init__(self, artist_url):
+    def __init__(self, artist_catalog):
         """
-        Recieve an artist catalog url as input and produce a BS object of
-        catalog data as well as a list of strings, each representing
-        one album's markup.
+        Store a BeautifulSoup object of a given artist catalog as well as a
+        list of the markup as strings by album.
         """
-        self.soup = make_soup() #artist_url)
+        self.soup = make_soup(artist_catalog)
         self.catalog_soup = self.soup.find(id="catalog-data")
         self.string_markup = str(self.catalog_soup).split("<h3>")
 
@@ -235,29 +209,15 @@ class Album():
         self.assign_track_info_to_dict()
 
 
-# Temporary Instantiation Tests:
-# category_links = get_category_links() #BASE_URL)  currently set up to read local html
-test_page = make_soup()#  category_links[25] # Cannonball catalog is 0 (33, Jarret)
-catalog = ArtistCatalog(test_page)
-
 # Find Album Index:
 # print catalog.find_album_number("Eric Dolphy - Illinois Concert")
 
-string_markup = catalog.string_markup[21]
+# Temporary Instantiation Tests:
+catalog = ArtistCatalog("john-coltrane.html")
+string_markup = catalog.string_markup[7]
 catalog_soup = catalog.catalog_soup
 cannonball_album = Album(string_markup, catalog_soup)
 
-# Problem Albums:
-        # cannonball 16, 24
-                # 'cannonball adderley as ronnie peters'
-                # apparentely cannonball went by a couple pseudonyms:
-                        # Spider Johnson
-                        # Buckshot La Funque
-                        # Ronnie Peters
-                        # Jud Brotherly
-                        # Blockbuster
-                # after string has been split but before it has been assigned to dict:
-                #       make a dict key for 'pseudonym'
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
@@ -265,14 +225,12 @@ cannonball_album.build_album_dict()
 
 printing.print_album_attributes(cannonball_album.album_dict)
 
-
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
 # To Do:
     # make sure oddpersonnel module can deal with integers in name or track
-    # clean up main module to reflect that it is getting the html from local files
-    # figure out how to access files in a subdirectory.  sys module?
     # write a function that searches each html file recursively for text and returns information about where it was found
     # non-critical: rewrite print functions using dict-based string formatting
     # may eventually need to deal with track-info shorthand
         # ex: "1, 4/7" - the backslash implies "1, 4,5,6,7"
+    # deal with albums containing pseudonyms - Cannonball 16, 24

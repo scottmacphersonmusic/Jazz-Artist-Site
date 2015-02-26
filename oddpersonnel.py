@@ -183,10 +183,8 @@ class OddPersonnel():
                 standard.append(isolate_standard)
             return standard, odd_dict
 
-# Bookmark: refactor seems to be alright but is printing strangely - let's check it out!
 
 # To-Do:
-    # refactor a little bit so personnelparser module doesn't have to do as much
     # will need to make sure the instruments I'm checking for aren't inside parens
     # also can use the regex number checker from personnelparser to look for either track info or numbers inside p-strings
     # what if an artist sub-string contains more than one common ensemble?

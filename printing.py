@@ -34,14 +34,14 @@ def print_personnel(personnel_dict):
                 print artist_dict[word] + ", ",
             print artist_dict[inst[-1]]
         # print odd personnel
-        if odd != None:
-            keys = [word for word in odd.keys()]
-            counter = 1
-            print "\t\t",
-            while counter <= len(keys):
-                key = "odd_" + str(counter)
-                print odd[key],
-                counter += 1
+    if odd != None:
+        keys = [word for word in odd.keys()]
+        counter = 1
+        print "\t\t",
+        while counter <= len(keys):
+            key = "odd_" + str(counter)
+            print odd[key],
+            counter += 1
 
 def print_tracks(track_dict):
     track_keys = track_dict.keys()

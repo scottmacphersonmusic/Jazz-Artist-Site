@@ -75,7 +75,7 @@ class AlbumPersonnel():
         initial_artist_arrays = [artist.split() for artist in split_artists]
         return initial_artist_arrays
 
-    def odd_personnel(self, initial_artists):
+    def filter_odd_personnel(self, initial_artists):
         """
         Use the functions provided in the oddpersonnel module to
         isolate uncommon personnel sub-strings. If there are any,
@@ -117,7 +117,7 @@ class AlbumPersonnel():
         artist arrays.
         """
         initial_artists = self.initial_artist_arrays()
-        standard_personnel = self.odd_personnel(initial_artists)
+        standard_personnel = self.filter_odd_personnel(initial_artists)
         partitioned_artist_arrays = [self.partition_artist_array(array)
                                      for array
                                      in standard_personnel]

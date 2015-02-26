@@ -184,6 +184,8 @@ class ProcessPersonnel():
         album_personnel = self.album_personnel_to_dict(album_personnel)
         if len(album_info) == 1:
             album_personnel["alt_album_info_1"] = album_info[0]
+        # for item in album_personnel:
+        #     print item, album_personnel[item]
         return album_personnel
 
 # Albums to test against:
