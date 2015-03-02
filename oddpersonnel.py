@@ -9,7 +9,7 @@ common_ensembles = ['Machito And His Orchestra',
                     'Oliver Nelson Orchestra',
                     'Orchestra Radio Baden-Baden',
                     'Orchestra Filarmonica Marchigiana',
-                    'Radio Symphony Hannover',
+                    'Members Of Radio Symphony Orchestra, Stuttgart',
                     "St. John's Assembly",
                     'Cincinnati Symphony Orchestra',
                     'Montreal International Jazz Festival Orchestra',
@@ -23,9 +23,9 @@ common_ensembles = ['Machito And His Orchestra',
                     'London Philharmonic Orchestra',
                     'Sydney Symphony Orchestra',
                     'Onzy Matthews Orchestra',
-                    'Sudfunk-Tanzorchester (Southern Radio Dance Orchestra)',
-                    'The University Of Illinois Brass Ensemble (-5)',   # this and the next one have track numbers... hmm
-                    'The University Of Illinois Big Band (-6)',
+                    'Sudfunk-Tanzorchester', # (Southern Radio Dance Orchestra)',
+                    'The University Of Illinois Brass Ensemble',   # this and the next one have track numbers... hmm
+                    'The University Of Illinois Big Band',
                     'Mercer Ellington And His Orchestra',
                     'Frank Humphries And His Orchestra',
                     'Dizzy Gillespie And His Orchestra',
@@ -74,11 +74,11 @@ odd_words = ['unidentified',
              'and'
 ]
 
-_digits = re.compile('\d')  # eventually replace this and the following function with an import statement
+# _digits = re.compile('\d')  # eventually replace this and the following function with an import statement
 
-def contains_digits(word):
-    """Return True if digits are present in a word (targets track info)."""
-    return bool(_digits.search(word))
+# def contains_digits(word):
+#     """Return True if digits are present in a word (targets track info)."""
+#     return bool(_digits.search(word))
 
 class ProperEnsemble():
     def __init__(self, artists, len_odd):
@@ -97,11 +97,29 @@ class ProperEnsemble():
             joined_artist += i + ' '
         for ensemble in common_ensembles:
             if ensemble in joined_artist:
+                print "looking at ", artist
                 split_ensemble = ensemble.split()
+                print "split_ensemble: ", split_ensemble
                 target = [artist.index(word) for word in artist
                           if split_ensemble[-1] in word][0] + 1
                 proper_ensemble = ensemble
-                standard_personnel = artist[target:]
+                if artist[target].startswith("("):
+                    for word in artist[target:]:
+                        if not word.endswith(")"):
+                            proper_ensemble += " " + word
+                            target += 1
+                        else:
+                            proper_ensemble += " " + word
+                            target += 1
+                            break
+                print "target: ", target
+                print "proper_ensemble: ", proper_ensemble
+                print len(artist), target
+                if len(artist) > target:
+                    standard_personnel = artist[target:]
+                else:
+                    standard_personnel = None
+                print "standard_personnel: ", standard_personnel, "\n"
                 return proper_ensemble, standard_personnel
 
     def filter_common_ensembles(self):
@@ -115,7 +133,10 @@ class ProperEnsemble():
             if self.has_common_ensemble(artist) != None:
                 proper_ensemble, standard_personnel = self.has_common_ensemble(artist)
                 index = self.artists.index(artist)
-                self.artists[index] = standard_personnel
+                if standard_personnel == None:
+                    self.artists.remove(artist)
+                else:
+                    self.artists[index] = standard_personnel
                 return self.artists, proper_ensemble
         return self.artists, None
 
@@ -151,21 +172,21 @@ class OddPersonnel():
 
     def isolate_odd_personnel(self, odd_personnel):
         """
-        Given a list of split words from a given artist substing which is known
+        Given a list of split words from a given artist substring which is known
         to contain 'unidentified', isolate any words associated with it from any
         standard-formatted personnel that may have been included. Return a tuple
-        with of the odd and standard personnel.
+        with the odd and standard personnel.
         """
         isolate_odd = []
-        _digits = re.compile('\d')
-        for a in odd_personnel:  # will it ever be the case that there is more than one sub-personnel item with 'unidentified'?
-            for w in odd_words:
-                if w in a:
-                    isolate_odd.append(a)
-                elif contains_digits(a):
-                    isolate_odd.append(a)   # Bookmark: figuring out how to make sure odd personnel includes track numbers if present
+        # _digits = re.compile('\d')
+        for word in odd_personnel:
+            for odd_word in odd_words:
+                if word in odd_word:
+                    isolate_odd.append(word)
+                elif word.startswith("("):     #contains_digits(a):
+                    isolate_odd.append(word) # Bookmark: figuring out how to make sure odd personnel includes track numbers if present
                     break
-                elif a == isolate_odd[-1]:
+                elif word == isolate_odd[-1]:
                     break
         isolate_standard = odd_personnel[len(isolate_odd):]
         return isolate_odd, isolate_standard
@@ -202,7 +223,6 @@ class OddPersonnel():
     # will need to make sure the instruments I'm checking for aren't inside parens
         # if there are parens describing instrument following an unbroken string of unidentifieds it should be part of it
         # include tracks and instruments but don't worry about making new dict keys for them, just clean up and stick with unidentified
-    # also can use the regex number checker from personnelparser to look for either track info or numbers inside p-strings
     # what if an artist sub-string contains more than one common ensemble?
     # will it ever be the case there is more than one sub-personnel item with 'unidentified'?
 

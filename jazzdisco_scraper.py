@@ -240,15 +240,15 @@ def search_archive(string):
         print "#  #  #  #  #  "*10
     print "\nTotal Results: ", total_results, "\n"
 
-# Search Arvhice Content:
+# Search Archive Content:
 # search_archive("replaces")
 
 # Find Album Index:
 # print catalog.find_album_number("Eric Dolphy - Illinois Concert")
 
 # Temporary Instantiation Tests:
-catalog = ArtistCatalog("zoot-sims.html")
-string_markup = catalog.string_markup[205]
+catalog = ArtistCatalog("eric-dolphy.html")
+string_markup = catalog.string_markup[91]
 catalog_soup = catalog.catalog_soup
 album = Album(string_markup, catalog_soup)
 
