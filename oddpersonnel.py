@@ -3,6 +3,8 @@ This module identifies personnel strings that have uncommon personnel within
 them and parses them accordingly.
 """
 
+import re # to be dealt with differently - see below
+
 common_ensembles = ['Machito And His Orchestra',
                     'Oliver Nelson Orchestra',
                     'Orchestra Radio Baden-Baden',
@@ -71,6 +73,12 @@ odd_words = ['unidentified',
              'Afro-Cuban',
              'and'
 ]
+
+_digits = re.compile('\d')  # eventually replace this and the following function with an import statement
+
+def contains_digits(word):
+    """Return True if digits are present in a word (targets track info)."""
+    return bool(_digits.search(word))
 
 class ProperEnsemble():
     def __init__(self, artists, len_odd):
@@ -149,11 +157,14 @@ class OddPersonnel():
         with of the odd and standard personnel.
         """
         isolate_odd = []
+        _digits = re.compile('\d')
         for a in odd_personnel:  # will it ever be the case that there is more than one sub-personnel item with 'unidentified'?
             for w in odd_words:
                 if w in a:
                     isolate_odd.append(a)
-                # this is where I'll include an elif to check for digits
+                elif contains_digits(a):
+                    isolate_odd.append(a)   # Bookmark: figuring out how to make sure odd personnel includes track numbers if present
+                    break
                 elif a == isolate_odd[-1]:
                     break
         isolate_standard = odd_personnel[len(isolate_odd):]
@@ -177,7 +188,10 @@ class OddPersonnel():
         if odd == None:
             return standard, None
         else:
+            # print "resolve_odd() 'else' branch taken"
             isolate_odd, isolate_standard = self.isolate_odd_personnel(odd)
+            # print "isolate_odd", isolate_odd
+            # print "isolate_standard", isolate_standard
             odd_dict = self.odd_personnel_to_dict(isolate_odd)
             if len(isolate_standard) >= 1:
                 standard.append(isolate_standard)
@@ -186,6 +200,8 @@ class OddPersonnel():
 
 # To-Do:
     # will need to make sure the instruments I'm checking for aren't inside parens
+        # if there are parens describing instrument following an unbroken string of unidentifieds it should be part of it
+        # include tracks and instruments but don't worry about making new dict keys for them, just clean up and stick with unidentified
     # also can use the regex number checker from personnelparser to look for either track info or numbers inside p-strings
     # what if an artist sub-string contains more than one common ensemble?
     # will it ever be the case there is more than one sub-personnel item with 'unidentified'?
@@ -195,9 +211,9 @@ class OddPersonnel():
         # 'unidentified' in initial and second personnel (w/'replaces')
     # Cannonball - 21, Machito And His Orchestra - Kenya-Afro Cuban Jazz
         # proper ensemble name
-    # Jarret - 16, Keith Jarrett - Restoration Ruin
+    # Jarrett - 16, Keith Jarrett - Restoration Ruin
         # 'unidentified' followed by tracks in parens
-    # Jarret - 57, Keith Jarrett - In The Light
+    # Jarrett - 57, Keith Jarrett - In The Light
         # proper ensemble name in multiple sessions
     # Jarret - 68, Keith Jarrett - Arbour Zena
         # proper ensemble followed by instrument in parens

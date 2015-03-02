@@ -20,6 +20,7 @@ import os
 import processpersonnel
 import copy
 import printing
+import re
 
 def make_soup(artist_catalog):
     """Return a BeautifulSoup object of a given html file."""
@@ -209,28 +210,65 @@ class Album():
         self.assign_track_info_to_dict()
 
 
+def search_archive(string):
+    """Scan all of the artist catalogs for a given text string."""
+    path = "/Users/scottmacpherson/Desktop/Code/" +  \
+           "Jazz Artist Site/site_archive/album_archive"
+    archive = os.listdir(path)
+    path_list = [path + "/" + artist for artist in archive]
+    archive_matches = []
+    total_results = 0
+    for artist in path_list:
+        artist_catalog = ArtistCatalog(artist)
+        markup = artist_catalog.string_markup
+        catalog_matches = []
+        for album in markup:
+            if string in album:
+                index =  markup.index(album)
+                catalog_matches.append((index, album))
+                total_results += 1
+        if len(catalog_matches) >= 1:
+            archive_matches.append((artist, catalog_matches))
+    # print results
+    for match in archive_matches:
+        split_path = match[0].split("/")
+        name = split_path[-1].rstrip(".html")
+        print "Artist Catalog: ", name,  "\n"
+        for result in match[1]:
+            print "Album Number: ", result[0]
+            print result[1], "\n"
+        print "#  #  #  #  #  "*10
+    print "\nTotal Results: ", total_results, "\n"
+
+# Search Arvhice Content:
+# search_archive("replaces")
+
 # Find Album Index:
 # print catalog.find_album_number("Eric Dolphy - Illinois Concert")
 
 # Temporary Instantiation Tests:
-catalog = ArtistCatalog("john-coltrane.html")
-string_markup = catalog.string_markup[7]
+catalog = ArtistCatalog("zoot-sims.html")
+string_markup = catalog.string_markup[205]
 catalog_soup = catalog.catalog_soup
-cannonball_album = Album(string_markup, catalog_soup)
+album = Album(string_markup, catalog_soup)
 
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
-cannonball_album.build_album_dict()
+album.build_album_dict()
 
-printing.print_album_attributes(cannonball_album.album_dict)
+printing.print_album_attributes(album.album_dict)
+
+# for item in album.album_dict:
+#     print item, album.album_dict[item], "\n"
 
 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
 # To Do:
-    # make sure oddpersonnel module can deal with integers in name or track
-    # write a function that searches each html file recursively for text and returns information about where it was found
-    # non-critical: rewrite print functions using dict-based string formatting
+  # add functionality to processpersonnel that checks to see if more than one keyword is present in a given
+    # personnel string. Split at "." and go from there? (ex: zoot-sims, 205)
+  # non-critical:
+    # rewrite print functions using dict-based string formatting
     # may eventually need to deal with track-info shorthand
-        # ex: "1, 4/7" - the backslash implies "1, 4,5,6,7"
+        # ex: "1, 4/7" - the backslash implies "1, 4, 5, 6, 7"
     # deal with albums containing pseudonyms - Cannonball 16, 24

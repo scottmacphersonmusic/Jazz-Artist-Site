@@ -219,4 +219,5 @@ class ProcessPersonnel():
         # all use 'plays' shorthand after first personnel
 
 # To-Do:
-    #
+    # can this module handle a personnel string with TWO keywords?:
+        # ex: "Brookmeyer plays (valve trombone). Cutty Cutshall (trombone) replaces McGarity"
